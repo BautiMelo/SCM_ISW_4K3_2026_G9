@@ -17,6 +17,7 @@ Repositorio dedicado a la gestión de configuración de la Materia Ingeniería y
 | Gomez, Luciano           | 89058  |
 
 ## 🔆Estructura Jerárquica del Repositorio🔆
+```
 IS-SCM-Repositorio/
 ├── InfoGeneral/
 │   ├── PautasCursado/
