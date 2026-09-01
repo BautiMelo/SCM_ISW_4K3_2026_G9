@@ -22,10 +22,10 @@ IS-SCM-Repositorio/
 ├── InfoGeneral/
 │   ├── PautasCursado/
 │   │        ├── <NombrePauta>.pdf
-│   └── Cronograma.txt/
+│   └── Cronograma.txt
 │
 ├── Teoria/
-│   ├── Bibliografia.txt/
+│   ├── Bibliografia.txt
 │   ├── Unidad<NroUnidad>/
 │   │   ├── MaterialClase/
 |   |           ├─ <NombrePresentacion>.pdf
@@ -33,7 +33,7 @@ IS-SCM-Repositorio/
 │   │      ├── notas_<DiaMes>_<NombreAlumno>.txt
 │
 ├── Practica/
-│   ├── <GuiaTrabajosPracticos>.pdf/
+│   ├── <GuiaTrabajosPracticos>.pdf
 │   ├── NotasClase/
 │   │      ├── notas_<DiaMes>_<NombreAlumno>.txt
 │   └── ResolucionEjercicios/
