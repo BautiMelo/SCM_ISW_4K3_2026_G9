@@ -21,49 +21,41 @@ Repositorio dedicado a la gestión de configuración de la Materia Ingeniería y
 IS-SCM-Repositorio/
 ├── InfoGeneral/
 │   ├── PautasCursado/
-│   └── Cronogramas/
+│   │        ├── <NombrePauta>.pdf
+│   └── Cronograma.txt/
 │
 ├── Teoria/
-│   ├── Bibliografia/
-│   ├── U1/
+│   ├── Bibliografia.txt/
+│   ├── Unidad<NroUnidad>/
 │   │   ├── MaterialClase/
+|   |           ├─ <NombrePresentacion>.pdf
 │   │   └── NotasClase/
-│   ├── U2/
-│   │   ├── MaterialClase/
-│   │   └── NotasClase/
-│   └── U3/
-│       ├── MaterialClase/
-│       └── NotasClase/
+│   │      ├── notas_<DiaMes>_<NombreAlumno>.txt
 │
 ├── Practica/
-│   ├── GuiaTrabajosPracticos/
+│   ├── <GuiaTrabajosPracticos>.pdf/
 │   ├── NotasClase/
+│   │      ├── notas_<DiaMes>_<NombreAlumno>.txt
 │   └── ResolucionEjercicios/
+│          ├── Resolucion_<NombreEjercicio>_<NombreAlumno>.ext
 │
 └── Evaluaciones/
     ├── Parciales/
-    │   ├── Parcial1/
-    │   │   ├── Resumenes/
-    │   │   ├── Plantillas/
-    │   │   ├── EjerciciosPractica/
-    │   │   └── Resoluciones/
-    │   └── Parcial2/
-    │       ├── Resumenes/
-    │       ├── Plantillas/
-    │       ├── EjerciciosPractica/
-    │       └── Resoluciones/
+    │   ├── Parcial<NroParcial>/
+    │      ├── Resumenes/
+    │      │      ├── <NombeResumen>.pdf
+    │      ├── Plantillas/
+    │      │      ├── <NombrePlantilla>.ext
+    │      ├── EjerciciosPractica/
+    │      │      ├── <NombreEnunciado>.pdf
+    │      └── Resoluciones/
+    |              ├── <NomreResolucion>.pdf
     └── TrabajosPracticos/
-        ├── TP01/
-        │   ├── Enunciado/
-        │   └── Documentacion/
-        ├── TP02/
-        │   ├── Enunciado/
-        │   └── Documentacion/
-        └── TP03_Gestion_Configuracion/
-            ├── Enunciado/
-            └── Documentacion/
-
-
+        ├── TP<NroTP>/
+           ├── <NombreEnunciado>.pdf/
+           └── Resolucion/
+                   ├── <NombreResolucion>.ext
+        
 ## 🔆Regla General de Nombrado de Ítems de Configuración🔆
 
 ## 🔆Matriz Exhaustiva de Ítems de Configuración (IC)🔆
