@@ -2,7 +2,7 @@
 Repositorio dedicado a la gestión de configuración de la Materia Ingeniería y Calidad de Software
 
 ## 🔆Integrantes del equipo🔆
-| Integrante              | Legajo |
+| Integrante               | Legajo |
 |--------------------------|--------|
 | Michelazzo, Francisco    | 400974 |
 | Stutz, Santiago          | 401863 |
