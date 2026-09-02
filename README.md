@@ -65,7 +65,7 @@ IS_[CATEGORIA]_[DETALLE]_[DESCRIPCION]_[VERSION].[EXT]
 IS → Prefijo obligatorio que identifica la asignatura (Ingeniería de Software).
 [CATEGORIA] → Nemónico o código de abreviación normalizado que clasifica el tipo de artefacto (ej. PTA, CRON, MB, MC, NT, GUIA, NP, EJR, RP, PLP, EJP, REPA, ENUN, DOC, SRC, BLD).
 [DETALLE] → Código de contexto o alcance (ej. GEN, U01, U02, TP01, TP02, TP03, P01, P02).
-[DESCRIPCION] → Nombre semántico y autoexplicativo del artefacto, es crito en PascalCase, sin espacios ni caracteres especiales.
+[DESCRIPCION] → Nombre semántico y autoexplicativo del artefacto, escrito en PascalCase, sin espacios ni caracteres especiales.
 [VERSION] → Notación semántica vX.Y (donde v0.1 a v0.9 representa versiones en progreso/borrador, y v1.0 en adelante representa versiones aprobadas/bajo línea base).
 [EXT] → Extensión de archivo formal (.pdf, .docx, .md, .py, .sh, etc.).
 
@@ -73,8 +73,33 @@ IS → Prefijo obligatorio que identifica la asignatura (Ingeniería de Software
 ```
 ```
 ## 🔆Glosario🔆
-```
-```
+
+| **Abreviación** | **Significado / Concepto** | **Descripción y Alcance** |
+| ---   | ---                        | --- |
+| IS    | Ingeniería de Software     | Prefijo institucional común para todos los artefactos de la asignatura |
+| PTA   | Pautas de Cursado          | Reglamentos, condiciones de regularidad y normativas de cátedra |
+| CRON  | Cronograma                 | Calendario oficial de clases, entregas y exámenes |
+| MB    | Bibliografía               | Libros, papers y material de referencia |
+| MC    | Material de Clase          | Presentaciones y guías teóricas |
+| NT    | Notas Teóricas             | Apuntes y registros de clases teóricas |
+| GUIA  | Guía de Trabajos Prácticos | Documento macro con todos los TPs |
+| NP    | Notas Prácticas            | Apuntes de las clases prácticas |
+| EJR   | Ejercicios Resueltos       | Soluciones de ejercicios prácticos |
+| RP    | Resumen para Parcial       | Síntesis de conceptos para parciales |
+| PLP   | Plantilla de Parcial       | Modelos y plantillas de examen |
+| EJP   | Ejercicios de Parcial      | Simulacros y bancos de ejercicios |
+| REPA  | Resolución de Parcial      | Soluciones y pautas de corrección |
+| ENUN  | Enunciado de TP            | Consignas oficiales de cada TP |
+| DOC   | Documentación Técnica      | Informes, planes de gestión y manuales |
+| SRC   | Código Fuente              | Scripts y módulos de programación |
+| BLD   | Build y Automatización     | Scripts de compilación e integración continua |
+| GEN   | General                    | Alcance global para toda la materia |
+| U[XX] | Unidad Temática            | Identificador de unidad (ej. U01, U02, U03) |
+| TP[XX]| Trabajo Práctico           | Identificador de TP (ej. TP01, TP02, TP03) |
+| P[XX] | Parcial                    | Identificador de parcial (ej. P01, P02) |
+
+
+
 ## 🔆Definición de Líneas Base (Baselines) y Flujo de Control🔆
 
 El criterio que vamos a utilizar para la creación de las líneas base va a ser:
