@@ -51,10 +51,9 @@ IS-SCM-Repositorio/
     │      └── Resoluciones/
     |              ├── <NomreResolucion>.pdf
     └── TrabajosPracticos/
-        ├── TP<NroTP>/
-           ├── <NombreEnunciado>.pdf/
-           └── Resolucion/
-                   ├── <NombreResolucion>.ext
+        ├── <GuiaTP>.pdf
+        ├── Resolucion_<NroTp>/
+            ├── <NombreResolucion>.ext
         
 ## 🔆Regla General de Nombrado de Ítems de Configuración🔆
 
