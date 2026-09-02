@@ -69,7 +69,7 @@ IS → Prefijo obligatorio que identifica la asignatura (Ingeniería de Software
 
 [CATEGORIA] → Nemónico o código de abreviación normalizado que clasifica el tipo de artefacto (ej. PTA, CRON, MB, MC, NT, GUIA, NP, EJR, RP, PLP, EJP, REPA, ENUN, DOC, SRC, BLD).
 
-[DETALLE] → Código de contexto o alcance (ej. GEN, U01, U02, TP01, TP02, TP03, P01, P02).
+[DETALLE] → Código de contexto o alcance (ej. GEN, U01, U02, TP01, TP02, TP03, P01, P02, DDMM).
 
 [DESCRIPCION] → Nombre semántico y autoexplicativo del artefacto, escrito en PascalCase, sin espacios ni caracteres especiales.
 
@@ -77,39 +77,33 @@ IS → Prefijo obligatorio que identifica la asignatura (Ingeniería de Software
 
 [EXT] → Extensión de archivo formal (.pdf, .docx, .md, .py, .sh, etc.).
 ```
+
 ## 🔆Matriz Exhaustiva de Ítems de Configuración (IC)🔆
+
+**Regla de nombrado general:** `IS_[CATEGORIA]_[DETALLE]_[DESCRIPCION]_[VERSION].[EXT]`
 
 | **NOMBRE DE IC** | **REGLA DE NOMBRADO** | **UBI FÍSICA** | **ÍTEM DEL PRODUCTO** |
 | --- | --- | --- | --- |
-| Pautas de Cursado | IS_PTA_GEN_PautasCursado_v1.0.pdf | SCM_ISW_4K3_2026_G9/InfoGeneral/PautasCursado | Documento de pautas |
-| Cronograma de Clases | IS_CRON_GEN_CronogramaClases_v1.0.pdf | SCM_ISW_4K3_2026_G9/InfoGeneral/Cronograma.txt | Cronograma oficial |
-| Bibliografía Obligatoria | IS_MB_GEN_BibliografiaObligatoria_v1.0.pdf | SCM_ISW_4K3_2026_G9/Teoria/Bibliografia.txt | Bibliografía |
-| Material Clase U1 | IS_MC_U01_MaterialClase_v1.0.pdf | SCM_ISW_4K3_2026_G9/Teoria/Unidad1/MaterialClase | Presentación de clase |
-| Notas Clase U1 | IS_NT_U01_NotasClase_v1.0.txt | SCM_ISW_4K3_2026_G9/Teoria/Unidad1/NotasClase | Apuntes teóricos |
-| Material Clase U2 | IS_MC_U02_MaterialClase_v1.0.pdf | SCM_ISW_4K3_2026_G9/Teoria/Unidad2/MaterialClase | Presentación de clase |
-| Notas Clase U2 | IS_NT_U02_NotasClase_v1.0.txt | SCM_ISW_4K3_2026_G9/Teoria/Unidad2/NotasClase | Apuntes teóricos |
-| Material Clase U3 | IS_MC_U03_MaterialClase_v1.0.pdf | SCM_ISW_4K3_2026_G9/Teoria/Unidad3/MaterialClase | Presentación de clase |
-| Notas Clase U3 | IS_NT_U03_NotasClase_v1.0.txt | SCM_ISW_4K3_2026_G9/Teoria/Unidad3/NotasClase | Apuntes teóricos |
-| Guía de TPs | IS_GUIA_GEN_GuiaTPs_v1.0.pdf | SCM_ISW_4K3_2026_G9/Practica/GuiaTrabajosPracticos.pdf | Guía práctica |
-| Notas Práctica | IS_NP_GEN_NotasPractica_v1.0.txt | SCM_ISW_4K3_2026_G9/Practica/NotasClase | Apuntes prácticos |
-| Ejercicio Resuelto TP01 | IS_EJR_TP01_ResolucionEjercicio1_Julieta_v1.0.py | SCM_ISW_4K3_2026_G9/Practica/ResolucionEjercicios | Código fuente |
-| Ejercicio Resuelto TP02 | IS_EJR_TP02_ResolucionEjercicio2_Julieta_v1.0.py | SCM_ISW_4K3_2026_G9/Practica/ResolucionEjercicios | Código fuente |
-| Resumen Parcial 1 | IS_RP_P01_ResumenTeoria_v1.0.pdf | SCM_ISW_4K3_2026_G9/Evaluaciones/Parciales/Parcial1/Resumenes | Resumen teórico |
+| Pautas de Cursado | IS_PTA_GEN_\<Descripcion\>_v1.0.pdf | SCM_ISW_4K3_2026_G9/InfoGeneral/PautasCursado | Documento de pautas |
+| Cronograma de Clases | IS_CRON_GEN_CronogramaClases_v1.0.txt | SCM_ISW_4K3_2026_G9/InfoGeneral/ | Cronograma oficial |
+| Bibliografía Obligatoria | IS_MB_GEN_LinkBibliografia_v1.0.txt | SCM_ISW_4K3_2026_G9/Teoria/ | Bibliografía |
+| Material Clase U1 | IS_MC_U01_\<Descripcion\>_v1.0.pdf | SCM_ISW_4K3_2026_G9/Teoria/Unidad01/MaterialClase | Presentación de clase |
+| Notas Clase U1 | IS_NT_\<DDMM\>_NotasClase_v1.0.txt | SCM_ISW_4K3_2026_G9/Teoria/Unidad01/NotasClase | Apuntes teóricos |
+| Guía de TPs (Práctica) | IS_GUIA_GEN_GuiaEjerciciosPracticos_v1.0.pdf | SCM_ISW_4K3_2026_G9/Practica/ | Guía práctica |
+| Notas Práctica | IS_NP_\<DDMM\>_Notas\<Nombre\>_v1.0.txt | SCM_ISW_4K3_2026_G9/Practica/NotasClase | Apuntes prácticos |
+| Ejercicio Resuelto TP | IS_EJR_TP\<NN\>_ResolucionEjercicio\<N\>_\<Nombre\>_v1.0.py | SCM_ISW_4K3_2026_G9/Practica/ResolucionEjercicios | Código fuente |
+| Resumen Parcial 1 | IS_RP_P01_\<Descripcion\>_v1.0.pdf | SCM_ISW_4K3_2026_G9/Evaluaciones/Parciales/Parcial1/Resumenes | Resumen teórico |
+| Ejercicio Práctica Parcial 1 | IS_EJP_P01_\<Descripcion\>_v1.0.pdf | SCM_ISW_4K3_2026_G9/Evaluaciones/Parciales/Parcial1/EjerciciosPractica | Enunciado práctico |
 | Plantilla Parcial 1 | IS_PLP_P01_Modelo_v1.0.docx | SCM_ISW_4K3_2026_G9/Evaluaciones/Parciales/Parcial1/Plantillas | Plantilla examen |
-| Ejercicio Parcial 1 | IS_EJP_P01_EjercicioPractica_v1.0.pdf | SCM_ISW_4K3_2026_G9/Evaluaciones/Parciales/Parcial1/EjerciciosPractica | Enunciado práctico |
 | Resolución Parcial 1 | IS_REPA_P01_Resolucion_v1.0.pdf | SCM_ISW_4K3_2026_G9/Evaluaciones/Parciales/Parcial1/Resoluciones | Resolución oficial |
-| Resumen Parcial 2 | IS_RP_P02_ResumenTeoria_v1.0.pdf | SCM_ISW_4K3_2026_G9/Evaluaciones/Parciales/Parcial2/Resumenes | Resumen teórico |
-| Plantilla Parcial 2 | IS_PLP_P02_Modelo_v1.0.docx | SCM_ISW_4K3_2026_G9/Evaluaciones/Parciales/Parcial2/Plantillas | Plantilla examen |
-| Ejercicio Parcial 2 | IS_EJP_P02_EjercicioPractica_v1.0.pdf | SCM_ISW_4K3_2026_G9/Evaluaciones/Parciales/Parcial2/EjerciciosPractica | Enunciado práctico |
-| Resolución Parcial 2 | IS_REPA_P02_Resolucion_v1.0.pdf | SCM_ISW_4K3_2026_G9/Evaluaciones/Parciales/Parcial2/Resoluciones | Resolución oficial |
-| Enunciado TP01 | IS_ENUN_TP01_Consigna_v1.0.pdf | SCM_ISW_4K3_2026_G9/Evaluaciones/TrabajosPracticos/TP01 | Consigna TP01 |
-| Resolución TP01 | IS_DOC_TP01_Informe_v1.0.pdf | SCM_ISW_4K3_2026_G9/Evaluaciones/TrabajosPracticos/TP01/Resolucion | Informe TP01 |
-| Enunciado TP02 | IS_ENUN_TP02_Consigna_v1.0.pdf | SCM_ISW_4K3_2026_G9/Evaluaciones/TrabajosPracticos/TP02 | Consigna TP02 |
-| Resolución TP02 | IS_DOC_TP02_Informe_v1.0.pdf | SCM_ISW_4K3_2026_G9/Evaluaciones/TrabajosPracticos/TP02/Resolucion | Informe TP02 |
-| Enunciado TP03 | IS_ENUN_TP03_Consigna_v1.0.pdf | SCM_ISW_4K3_2026_G9/Evaluaciones/TrabajosPracticos/TP03_Gestion_Configuracion/Enunciado | Consigna TP03 |
-| Documento TP03 | IS_DOC_TP03_DefinicionICsYLineasBase_v1.0.pdf | SCM_ISW_4K3_2026_G9/Evaluaciones/TrabajosPracticos/TP03_Gestion_Configuracion/Resolucion | Documento de ICs y líneas base |
-| Código Fuente TP03 | IS_SRC_TP03_Resolucion_v1.0.py | SCM_ISW_4K3_2026_G9/Evaluaciones/TrabajosPracticos/TP03_Gestion_Configuracion/Resolucion | Código fuente |
+| Guía de TPs (Evaluaciones) | IS_GUIA_GEN_GuiaTPs_v1.0.pdf | SCM_ISW_4K3_2026_G9/Evaluaciones/TrabajosPracticos/ | Guía de trabajos prácticos |
+| Resolución TP01 | IS_DOC_TP01_\<Descripcion\>_v1.0.\<ext\> | SCM_ISW_4K3_2026_G9/Evaluaciones/TrabajosPracticos/ResolucionTP01 | Informe y/o código fuente |
+| README del repositorio | README.md | SCM_ISW_4K3_2026_G9/ | Documento de presentación del repositorio |
 
+**Notas sobre estructuras repetidas:**
+- **Teoria/Unidad01** se desarrolló como ejemplo completo (Material Clase + Notas Clase). **Unidad02, Unidad03 y Unidad04** siguen exactamente la misma estructura y regla de nombrado, reemplazando `U01` por `U02`, `U03` o `U04` respectivamente en el DETALLE.
+- **Evaluaciones/Parciales/Parcial1** se desarrolló como ejemplo completo (Resumen, Ejercicio Práctica, Plantilla, Resolución). **Parcial2** sigue la misma estructura, reemplazando `P01` por `P02`.
+- **Evaluaciones/TrabajosPracticos/ResolucionTP01** se desarrolló como ejemplo. **ResolucionTP02 a ResolucionTP13** siguen la misma estructura y regla de nombrado, reemplazando `TP01` por el número de TP correspondiente (`TP02`...`TP13`).
 
 
 
@@ -138,6 +132,7 @@ IS → Prefijo obligatorio que identifica la asignatura (Ingeniería de Software
 | U[XX] | Unidad Temática            | Identificador de unidad (ej. U01, U02, U03) |
 | TP[XX]| Trabajo Práctico           | Identificador de TP (ej. TP01, TP02, TP03) |
 | P[XX] | Parcial                    | Identificador de parcial (ej. P01, P02) |
+| DDMM  | Fecha                      | Formato de fecha en dia y mes |
 
 ## 🔆Definición de Líneas Base (Baselines) y Flujo de Control🔆
 ```
