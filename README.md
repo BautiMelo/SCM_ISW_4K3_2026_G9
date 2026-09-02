@@ -18,43 +18,44 @@ Repositorio dedicado a la gestión de configuración de la Materia Ingeniería y
 | Bottari, Lucca           | 82359  |
 
 ## 🔆Estructura Jerárquica del Repositorio🔆
-```
+
 IS-SCM-Repositorio/
 ├── InfoGeneral/
 │   ├── PautasCursado/
-│   │        ├── <NombrePauta>.pdf
-│   └── Cronograma.txt
+│   │   └── IS_PTA_GEN_<Tema>_v<X.Y>.pdf
+│   └── IS_CRON_GEN_<Descripcion>_v<X.Y>.txt
 │
 ├── Teoria/
-│   ├── Bibliografia.txt
+│   ├── IS_MB_GEN_<Descripcion>_v<X.Y>.txt
 │   ├── Unidad<NroUnidad>/
 │   │   ├── MaterialClase/
-|   |           ├─ <NombrePresentacion>.pdf
+│   │   │   └── IS_MC_U<XX>_<Tema>_v<X.Y>.pdf
 │   │   └── NotasClase/
-│   │      ├── notas_<DiaMes>_<NombreAlumno>.txt
+│   │       └── IS_NT_U<XX>_<Descripcion>_v<X.Y>.txt
 │
 ├── Practica/
-│   ├── GuiaTrabajosPracticos.pdf
+│   ├── IS_GUIA_GEN_<Descripcion>_v<X.Y>.pdf
 │   ├── NotasClase/
-│   │      ├── notas_<DiaMes>_<NombreAlumno>.txt
+│   │   └── IS_NP_GEN_<Descripcion>_v<X.Y>.txt
 │   └── ResolucionEjercicios/
-│          ├── Resolucion_<NombreEjercicio>_<NombreAlumno>.ext
+│       └── IS_EJR_TP<XX>_<EjercicioAlumno>_v<X.Y>.<ext>
 │
 └── Evaluaciones/
     ├── Parciales/
     │   ├── Parcial<NroParcial>/
-    │      ├── Resumenes/
-    │      │      ├── <NombeResumen>.pdf
-    │      ├── Plantillas/
-    │      │      ├── <NombrePlantilla>.ext
-    │      ├── EjerciciosPractica/
-    │      │      ├── <NombreEnunciado>.pdf
-    │      └── Resoluciones/
-    |              ├── <NombreResolucion>.pdf
+    │   │   ├── Resumenes/
+    │   │   │   └── IS_RP_P<N>_<Tema>_v<X.Y>.pdf
+    │   │   ├── Plantillas/
+    │   │   │   └── IS_PLP_P<N>_<Tipo>_v<X.Y>.<ext>
+    │   │   ├── EjerciciosPractica/
+    │   │   │   └── IS_EJP_P<N>_<Tema>_v<X.Y>.pdf
+    │   │   └── Resoluciones/
+    │   │       └── IS_REPA_P<N>_<TemaResolucion>_v<X.Y>.pdf
+    │
     └── TrabajosPracticos/
-        ├── <GuiaTP>.pdf
-        ├── Resolucion_<NroTp>/
-            ├── <NombreResolucion>.ext
+        ├── IS_ENUN_TP<XX>_<Tema>v<X.Y>.pdf
+        └── Resolucion<NroTp>/
+            └── IS_DOC_TP<XX>_<Descripcion>_v<X.Y>.<ext>
         
 ```
 ## 🔆Regla General de Nombrado de Ítems de Configuración🔆
@@ -70,8 +71,9 @@ IS → Prefijo obligatorio que identifica la asignatura (Ingeniería de Software
 [EXT] → Extensión de archivo formal (.pdf, .docx, .md, .py, .sh, etc.).
 
 ## 🔆Matriz Exhaustiva de Ítems de Configuración (IC)🔆
-```
-```
+
+
+
 ## 🔆Glosario🔆
 
 | **Abreviación** | **Significado / Concepto** | **Descripción y Alcance** |
@@ -97,8 +99,6 @@ IS → Prefijo obligatorio que identifica la asignatura (Ingeniería de Software
 | U[XX] | Unidad Temática            | Identificador de unidad (ej. U01, U02, U03) |
 | TP[XX]| Trabajo Práctico           | Identificador de TP (ej. TP01, TP02, TP03) |
 | P[XX] | Parcial                    | Identificador de parcial (ej. P01, P02) |
-
-
 
 ## 🔆Definición de Líneas Base (Baselines) y Flujo de Control🔆
 
