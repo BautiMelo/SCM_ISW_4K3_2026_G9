@@ -18,7 +18,7 @@ Repositorio dedicado a la gestión de configuración de la Materia Ingeniería y
 | Bottari, Lucca           | 82359  |
 
 ## 🔆Estructura Jerárquica del Repositorio🔆
-
+´´´
 IS-SCM-Repositorio/
 ├── InfoGeneral/
 │   ├── PautasCursado/
@@ -56,7 +56,7 @@ IS-SCM-Repositorio/
         ├── IS_ENUN_TP<XX>_<Tema>v<X.Y>.pdf
         └── Resolucion<NroTp>/
             └── IS_DOC_TP<XX>_<Descripcion>_v<X.Y>.<ext>
-        
+´´´      
 ## 🔆Regla General de Nombrado de Ítems de Configuración🔆
 Todos los Ítems de Configuración (ICs) deben construirse siguiendo la siguiente convención estándar:
 
