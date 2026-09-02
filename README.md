@@ -90,7 +90,7 @@ IS → Prefijo obligatorio que identifica la asignatura (Ingeniería de Software
 | Notas Clase U2 | IS_NT_U02_NotasClase_v1.0.txt | Teoria/Unidad2/NotasClase | Apuntes teóricos |
 | Material Clase U3 | IS_MC_U03_MaterialClase_v1.0.pdf | Teoria/Unidad3/MaterialClase | Presentación de clase |
 | Notas Clase U3 | IS_NT_U03_NotasClase_v1.0.txt | Teoria/Unidad3/NotasClase | Apuntes teóricos |
-| Guía de TPs | IS_GUIA_GEN_GuiaTPs_v1.0.pdf | Practica/GuiaTrabajosPracticos.pdf | Guía práctica |
+| Guía de TPs | IS_GUIA_GEN_GuiaEjerciciosPracticos_v1.0.pdf | Practica/ | Guía práctica |
 | Notas Práctica | IS_NP_GEN_NotasPractica_v1.0.txt | Practica/NotasClase | Apuntes prácticos |
 | Ejercicio Resuelto TP01 | IS_EJR_TP01_ResolucionEjercicio1_Julieta_v1.0.py | Practica/ResolucionEjercicios | Código fuente |
 | Ejercicio Resuelto TP02 | IS_EJR_TP02_ResolucionEjercicio2_Julieta_v1.0.py | Practica/ResolucionEjercicios | Código fuente |
