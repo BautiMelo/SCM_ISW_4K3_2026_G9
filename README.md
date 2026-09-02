@@ -18,8 +18,9 @@ Repositorio dedicado a la gestión de configuración de la Materia Ingeniería y
 | Bottari, Lucca           | 82359  |
 
 ## 🔆Estructura Jerárquica del Repositorio🔆
-´´´
-IS-SCM-Repositorio/
+```
+
+SCM_ISW_4K3_2026_G9/
 ├── InfoGeneral/
 │   ├── PautasCursado/
 │   │   └── IS_PTA_GEN_<Tema>_v<X.Y>.pdf
@@ -56,20 +57,28 @@ IS-SCM-Repositorio/
         ├── IS_ENUN_TP<XX>_<Tema>v<X.Y>.pdf
         └── Resolucion<NroTp>/
             └── IS_DOC_TP<XX>_<Descripcion>_v<X.Y>.<ext>
-´´´      
+```
+      
 ## 🔆Regla General de Nombrado de Ítems de Configuración🔆
+```
 Todos los Ítems de Configuración (ICs) deben construirse siguiendo la siguiente convención estándar:
 
 IS_[CATEGORIA]_[DETALLE]_[DESCRIPCION]_[VERSION].[EXT]
 
 IS → Prefijo obligatorio que identifica la asignatura (Ingeniería de Software).
-[CATEGORIA] → Nemónico o código de abreviación normalizado que clasifica el tipo de artefacto (ej. PTA, CRON, MB, MC, NT, GUIA, NP, EJR, RP, PLP, EJP, REPA, ENUN, DOC, SRC, BLD).
-[DETALLE] → Código de contexto o alcance (ej. GEN, U01, U02, TP01, TP02, TP03, P01, P02).
-[DESCRIPCION] → Nombre semántico y autoexplicativo del artefacto, escrito en PascalCase, sin espacios ni caracteres especiales.
-[VERSION] → Notación semántica vX.Y (donde v0.1 a v0.9 representa versiones en progreso/borrador, y v1.0 en adelante representa versiones aprobadas/bajo línea base).
-[EXT] → Extensión de archivo formal (.pdf, .docx, .md, .py, .sh, etc.).
 
+[CATEGORIA] → Nemónico o código de abreviación normalizado que clasifica el tipo de artefacto (ej. PTA, CRON, MB, MC, NT, GUIA, NP, EJR, RP, PLP, EJP, REPA, ENUN, DOC, SRC, BLD).
+
+[DETALLE] → Código de contexto o alcance (ej. GEN, U01, U02, TP01, TP02, TP03, P01, P02).
+
+[DESCRIPCION] → Nombre semántico y autoexplicativo del artefacto, escrito en PascalCase, sin espacios ni caracteres especiales.
+
+[VERSION] → Notación semántica vX.Y (donde v0.1 a v0.9 representa versiones en progreso/borrador, y v1.0 en adelante representa versiones aprobadas/bajo línea base).
+
+[EXT] → Extensión de archivo formal (.pdf, .docx, .md, .py, .sh, etc.).
+```
 ## 🔆Matriz Exhaustiva de Ítems de Configuración (IC)🔆
+
 | **NOMBRE DE IC** | **REGLA DE NOMBRADO** | **UBI FÍSICA** | **ÍTEM DEL PRODUCTO** |
 | --- | --- | --- | --- |
 | Pautas de Cursado | IS_PTA_GEN_PautasCursado_v1.0.pdf | InfoGeneral/PautasCursado | Documento de pautas |
@@ -129,7 +138,7 @@ IS → Prefijo obligatorio que identifica la asignatura (Ingeniería de Software
 | P[XX] | Parcial                    | Identificador de parcial (ej. P01, P02) |
 
 ## 🔆Definición de Líneas Base (Baselines) y Flujo de Control🔆
-
+```
 El criterio que vamos a utilizar para la creación de las líneas base va a ser:
 
     1. La primer línea base se establece al terminar la configuración inicial del repositorio, correspondiente al Trabajo Práctico número 4. La misma será indicada con una Tag llamada "BL-TP04".
@@ -140,3 +149,4 @@ Las líneas base se identificarán con una Tag que indicará que dicho commit re
 ### Ej: Línea Base Inicial: BL-INIT:
 
 Criterio: Congela la estructura física del repositorio, las pautas de cursado, el cronograma oficial y la bibliografía inicial de referencia de la cátedra.
+```
