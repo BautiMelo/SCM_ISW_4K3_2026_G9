@@ -1,0 +1,37 @@
+GESTION DE CONFIGURACIÓN DE SOFTWARE (SCM)
+	disciplina de soporte que se encarga de mantener la integridad del sw a lo largo del tiempo a traves del trabajo colaborativo
+Verificación: hacemos las cosas correctamente?
+Validación: estamos haciendo lo que el cliente realmente solicitó? 
+Item de configuración
+	cualquier pieza, diagrama, definición, documento 
+	Tienen un nombrado (suerte de nomenclatura) -> Siguen unas "reglas de nombrado"	
+Que es una configuración?
+	Una foto de los item de configuración en un momento dado
+Que es una versión? 
+	cada item pasa por distintas versiones a lo largo del tiempo
+variante
+	suerte de ramas de un item
+linea base
+	etiqueta sobre un conjunto de items de conf que cumplen con un cierto stándar definido (lo que llamamos "rama estable")
+	Habilita hacer un "rollback" a la versión estable
+Tags
+	Herramienta que permite "marcar" un estado de los items de configuración representativa/útil por un motivo en particular (estabilidad/experimental/peligroso/etc etc)
+4 Actividades (mayormente asociadas a los procesos definidos -> no quita que puedan aplicarse a procesos empíricos)
+	identificación de items de conf
+	control 
+		comité de control de cambios: Propio de los procesos definidos
+			Suele haber 2, el mínimo y el ampliado.
+				El mínimo: Tiene que ser mas de 1 persona
+				El ampliado: El mínimo + roles organizacionales 
+	informes/reportes
+	auditorías: contraste entre lo que se esta haciendo y lo que se encuentra documentado, usualmente llevado a cabo por un auditor externo (al equipo, no necesariamente externo de la empresa) -> Incluso los procesos de auditoría pueden ser auditados!
+		Físicas: verificación
+		Funcional: validación
+Disciplinas
+	aplican
+En los frameworks ágiles, los procesos de control de configuración son súper automatizados porque evitamos invertir esfuerzo en actividades que no aportan valor al producto.
+	Generalmente lo tratamos mediante las prácticas contínuas(? CI|CD
+Carpetas con una sola carpeta están sobrando
+Aquellos documentos de extensión variable es deseable acotarlo a un conjunto de extensione posibles:
+	Por ejemplo los libros en .pdf .word .txt etcetc
+

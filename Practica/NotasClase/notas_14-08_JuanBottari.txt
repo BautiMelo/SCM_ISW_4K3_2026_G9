@@ -1,0 +1,59 @@
+Procesos definidos y empíricos?
+
+Inconvenientes históricos del desarrollo de software:
+	-Insatisfacción del cliente en el producto final -> Entender
+	-Dificultad de escalado 
+
+Que es el software?
+	Conjunto de programas y la documentación que lo acompaña.
+	3 tipos básicos de sw:
+		-Base
+		-Utilitarios
+		-De aplicación
+
+Visión de pirámide:
+
+![[Pasted image 20260814213136.png]]
+
+Transformación de los requerimientos del cliente hasta la solución obtenida:
+![[Pasted image 20260814213333.png]]
+
+No silver bullets (paper de frederick Brooks)
+2 dificultades:
+	características accidentales
+	el concepto 
+![[Pasted image 20260814213907.png]]
+
+4 aspectos del software
+	-complejidad 
+	-conformidad
+	-mutabilidad
+	-invisibilidad
+historicamente buscamos atacar las caracteristicas accidentales del sw
+	-60s lenguajes de alto nivel
+	-70s concurrencia
+	-80s IDEs
+
+Proceso de sw: 
+	Un conjunto de actividades, métodos, prácticas, y transformaciones que la gente usa para desarrollar o mantener software y sus productos asociados
+4ps: persona,proceso,producto,proyecto
+Ciclo de vida:
+	Representación de un proceso desde una perspectiva en particular.
+Proceso empírico:
+	cuando la complejidad es alta, buscamos ir aprendiendo de la experiencia en el transcurso del proceso, a traves de controles/inspecciones frecuentes.
+	![[Pasted image 20260814220143.png]]
+Proceso definido:
+	sumimos que podemos repetir el mismo proceso una y otra vez, indefinidamente, y obtener los mismos resultados. La administración y control provienen de la predictibilidad del proceso definido
+
+El proyecto es una instancia del proceso, que tiene como salida un producto.
+
+Clasificación de los ciclos de vida:
+	Secuencial
+	Iterativo/Incremental
+	Recursivo
+
+Tarea para la casa:
+¿Qué ciclos de vida conocen? ¿Qué Relación hay entre procesos de Desarrollo y ciclos de vida?
+Leer Capítulo 7 de Desarrollos de proyectos informáticos (Rapid Development) de Mcconell
+
+"The mithical man month interesante para leer"
