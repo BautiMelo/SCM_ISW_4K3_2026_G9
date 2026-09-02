@@ -49,7 +49,7 @@ IS-SCM-Repositorio/
     │      ├── EjerciciosPractica/
     │      │      ├── <NombreEnunciado>.pdf
     │      └── Resoluciones/
-    |              ├── <NomreResolucion>.pdf
+    |              ├── <NombreResolucion>.pdf
     └── TrabajosPracticos/
         ├── <GuiaTP>.pdf
         ├── Resolucion_<NroTp>/
