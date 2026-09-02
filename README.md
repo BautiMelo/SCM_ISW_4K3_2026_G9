@@ -58,8 +58,17 @@ IS-SCM-Repositorio/
         
 ```
 ## 🔆Regla General de Nombrado de Ítems de Configuración🔆
-```
-```
+Todos los Ítems de Configuración (ICs) deben construirse siguiendo la siguiente convención estándar:
+
+IS_[CATEGORIA]_[DETALLE]_[DESCRIPCION]_[VERSION].[EXT]
+
+IS → Prefijo obligatorio que identifica la asignatura (Ingeniería de Software).
+[CATEGORIA] → Nemónico o código de abreviación normalizado que clasifica el tipo de artefacto (ej. PTA, CRON, MB, MC, NT, GUIA, NP, EJR, RP, PLP, EJP, REPA, ENUN, DOC, SRC, BLD).
+[DETALLE] → Código de contexto o alcance (ej. GEN, U01, U02, TP01, TP02, TP03, P01, P02).
+[DESCRIPCION] → Nombre semántico y autoexplicativo del artefacto, es crito en PascalCase, sin espacios ni caracteres especiales.
+[VERSION] → Notación semántica vX.Y (donde v0.1 a v0.9 representa versiones en progreso/borrador, y v1.0 en adelante representa versiones aprobadas/bajo línea base).
+[EXT] → Extensión de archivo formal (.pdf, .docx, .md, .py, .sh, etc.).
+
 ## 🔆Matriz Exhaustiva de Ítems de Configuración (IC)🔆
 ```
 ```
