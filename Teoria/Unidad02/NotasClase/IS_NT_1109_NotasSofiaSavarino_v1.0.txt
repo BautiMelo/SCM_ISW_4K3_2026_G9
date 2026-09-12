@@ -1,0 +1,79 @@
+Viernes 11/09
+
+ppt: 08 SCRUM 2026, Planificación de release y sprint, Métricas Scrum
+Clase que viene: planificación de release y sprint- profe Judith 
+
+**Cultura ágil**
+Basada en los procesos empíricos y pensamiento Lean
+Pilares del empirismo: transparencia, inspección y adaptación
+La relación entre estos pilares es fundamental. La condición para que la inspección funcione es la transparencia. Si inspeccionamos pero no adaptamos el proceso, la inspección se convierte en un desperdicio.
+Hacer algo que no devuelva valor es desperdicio
+
+Manifiesto ágil: acuerdo que llegaron varios agilistas. Formado por valores y principios
+Nos orienta sobre cuáles son las cosas que debemos priorizar a la hora de desarrollar software.
+
+Ej user stories —>  asociados al valor de priorizar individuos por sobre las herramientas.
+La argumentación por si misma no agrega valor —> software funcionando por sobre documentación (no hacer las cosas solo porque esta escrito)
+Trabajar codo a codo con el cliente que esta identificado como PO —> Colaboración con el cliente sobre negociación contractual
+Flexibilidad para el cambio (pila de users stories) → responder al cambio sobre seguir plan. El cambio no tiene impacto, no hay desperdicio
+
+Los valores nos dan la visión, los principios anuncian cómo deberíamos llegar a esos valores.
+Ninguno de los dos nos dice CÓMO o de QUÉ MANERA realizarlo sino mas bien QUÉ PERSEGUIR
+SCRUM nos da algunas practicas 
+La cultura organizacional tiene mucho que ver para seguir estos valores
+
+**SCRUM 2026**
+Es un FRAMEWORK (no metodología): la metodología prescribe una serie de pasos a seguir, el framework es un marco de trabajo; apunta a estructurar equipos y actividades, permitir agregar valor a problemas complejos y tener algunas definiciones de cómo tenemos que trabajar. 
+framework de gestión. En nuestro caso para la gestión de proyectos.
+Como esta alineado al manifiesto ágil, también tiene una estructura de valores y principios. Tiene como base fundamentalmente al empirismo 
+
+Principios de scrum:
+
+- Control de proceso empírico:  scrum funciona con procesos empíricos. Aprende a partir de la experiencia. Usa los pilares transparencia, adaptación e inspección.
+- Autorganización: los equipos deben poder autogestionarse. No hay un líder de proyecto que asigne tareas. Se asignan según las habilidades.
+- Colaboración: todas las personas que forman parte del equipo colaboran entre si. Todos son responsables por el producto de software que se esta creando.
+- Priorización: lo de mayor valor de negocio por encima.
+- Time boxing: unidades de tiempo acotadas para todos los eventos que se plantean
+- Desarrollo iterativo
+
+Se introduce la lente ODA: complementa los tres pilares del empirismo.Cuatro aristas: 
+
+- Observar: ver la realidad (relacionado con la inspección) para saber lo que ocurre.
+- Orientar: interpretar la realidad. (valor: coraje)
+- Decidir: en base a la realidad que voy a hacer.
+- Actuar: ejecución.
+
+Valores SCRUM: coraje foco compromiso respeto apertura. 
+
+El equipo de trabajo debe verse o parecerse a una célula(autogestión y responsabilidad como una unidad)
+
+Ecosistema extendido (aparecen roles a los que no se le daban tanta identidad)
+
+- Stackeholders: involucrados en el proyectos que no sean parte del equipo (cliente, usuarios, leyes, organismos de control, regulaciones). De alguna manera condicionan el producto de software que vamos a construir.
+- Supporters: agentes de cambio. Permiten que el equipo encastre dentro de la organización, siguiendo el marco de trabajo SCRUM. Tienen que ver con barreras organizacionales, los recursos que pone la organización, la adopción de algunas practicas. Relacionado al proceso (a diferencia del PO que esta relacionado al producto)
+- Product owner: dueño del producto. Se ocupa de tener en claro la estrategia de producto y de gestionar el product backlog. No tiene todos los conocimientos de negocio pero tiene a quien preguntarle y poder de decisión.
+- Product developer: equipo de producto. Puede ser humano o automatizado (mix) . Crea el incremento del producto y autogestiona el plan del sprint.
+- Scrum master: ayuda a la adopción de scrum dentro del equipo
+
+Algunas características:
+
+- equipo pequeño: para facilitar la comunicación. La complejidad de comunicación aumenta cuando hay mas personas.
+- IA: uso ético. Nunca le encargo a la IA que resuelva una tarea sin tener en cuenta que la responsabilidad es de los humanos del equipo
+- rol que le podemos dar a la IA: automatización o análisis
+
+La responsabilidad siempre es humana, uso ético y transparencia por parte del equipo.
+
+Liderazgo y cambio. Relacionado con el concepto de inspección.
+Las decisiones que tomamos en el contexto del empirismo deben ser en función de evidencia real que puedo ver, no en función de supuestos.
+
+Practicas que nos plantea scrum:
+
+- Sprint: marca el paso a lo largo de la ejecución de todo el framework. Se define una cadencia (tiempo de duración del sprint(fijo para el equipo)), nos da previsibilidad en la entrega (nuestro cliente sabe cada cuanto le voy a entregar) por eso esta asociado con el time boxing. MAXIMO 4 semanas (tengo que entregar software funcionando) —> el que me comprometo al inicio del sprint.
+- Sprint planning: en función de las estimaciones, las US y la capacidad del equipo, elijo que historias incluyo en el sprint . Una vez elegido, defino en términos de equipo cual es la cadencia del sprint (siempre la misma) teniendo en cuenta el time boxing(que depende del equipo). Objetivo del sprint y el sprint backlog, tiene el diseño táctico de lo que vamos a hacer en el sprint
+- Daily: reunión por y para el equipo, se comparte que  se hizo el día anterior, que se hará ese día y que problemas ocurrieron (se juntan los tres pilares fundamentales). Sincronización táctica, No es un reporte de estado
+- Sprint review: sesión de trabajo cuando termina el sprint. Sirve para inspeccionar el resultado del sprint.
+- Retrospective: al final del sprint. Respecto a como trabajamos dentro del proceso: que se hizo bien, que mal y que acciones correctivas aplicamos.
+
+El objetivo del sprint es inamovible(valor que agrega el sprint)
+No se deben cubrir deudas técnicas. Todo lo entregado es desplegado en producción, funciona y cumple con todas las especificaciones técnicas (no se debe emprolijar código ni arreglar cosas)
+Sprint es el contenedor que nos da el contexto para fallar, acá transcurre la inspección y adaptación
