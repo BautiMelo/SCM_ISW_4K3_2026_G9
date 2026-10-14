@@ -4,6 +4,10 @@ export const comprarEntradas = async (
   solicitud: SolicitudCompra,
   dependencias: DependenciasCompra,
 ): Promise<ResultadoCompra> => {
+  if (solicitud.formaPago !== 'EFECTIVO' && solicitud.formaPago !== 'TARJETA') {
+    throw new Error('Debe seleccionar la forma de pago: efectivo o tarjeta');
+  }
+
   const [anio, mes, dia] = solicitud.fechaVisita.split('-');
 
   return {
