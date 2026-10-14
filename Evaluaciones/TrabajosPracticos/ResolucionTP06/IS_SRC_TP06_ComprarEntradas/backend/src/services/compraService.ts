@@ -23,11 +23,14 @@ export const validarFormaPago = (formaPago?: string): void => {
 };
 
 export const validarFechaVisita = (fechaTexto: string, fechaActual: Date): Date => {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(fechaTexto)) {
+  const fechaVisita = parsearFecha(fechaTexto);
+  // Si Date "corrigió" la fecha (ej. 31/02 -> 03/03), la fecha no existe
+  const esFechaExistente = /^\d{4}-\d{2}-\d{2}$/.test(fechaTexto)
+    && fechaVisita.getDate() === Number(fechaTexto.split('-')[2]);
+  if (!esFechaExistente) {
     throw new Error('Debe indicar una fecha de visita válida (AAAA-MM-DD)');
   }
 
-  const fechaVisita = parsearFecha(fechaTexto);
   const hoy = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), fechaActual.getDate());
   if (fechaVisita < hoy) {
     throw new Error('La fecha de visita debe ser hoy o una fecha futura');
