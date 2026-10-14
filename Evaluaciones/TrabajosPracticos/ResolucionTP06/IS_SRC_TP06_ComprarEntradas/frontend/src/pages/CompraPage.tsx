@@ -6,6 +6,14 @@ interface CompraPageProps {
 }
 
 const VISITANTE_INICIAL: VisitanteForm = { edad: '', tipoPase: 'REGULAR', esJubilado: false };
+// Mismas reglas que valida la API: acá solo sirven para avisar apenas se carga el dato
+const CANTIDAD_MAXIMA_ENTRADAS = 10;
+const DIAS_CERRADOS = [2, 4]; // getDay(): 2 = martes, 4 = jueves
+
+const esDiaCerrado = (fecha: string): boolean => {
+  const [anio, mes, dia] = fecha.split('-').map(Number);
+  return DIAS_CERRADOS.includes(new Date(anio, mes - 1, dia).getDay());
+};
 
 // Fecha local en formato AAAA-MM-DD (toISOString usaría UTC y de noche daría el día siguiente)
 const hoyComoTexto = (): string => {
@@ -27,7 +35,7 @@ export const CompraPage = ({ onCompraRealizada }: CompraPageProps) => {
   const cambiarCantidad = (valor: string) => {
     const cantidad = Number(valor);
     setCantidadEntradas(cantidad);
-    if (Number.isInteger(cantidad) && cantidad >= 0 && cantidad <= 50) {
+    if (Number.isInteger(cantidad) && cantidad >= 0 && cantidad <= CANTIDAD_MAXIMA_ENTRADAS) {
       setVisitantes((actuales) => Array.from({ length: cantidad }, (_, i) => actuales[i] ?? { ...VISITANTE_INICIAL }));
     }
   };
@@ -53,6 +61,13 @@ export const CompraPage = ({ onCompraRealizada }: CompraPageProps) => {
     setEnviando(false);
   };
 
+  const avisoFecha = fechaVisita && esDiaCerrado(fechaVisita)
+    ? 'El parque está cerrado los martes y jueves. Elegí otro día.'
+    : '';
+  const avisoCantidad = cantidadEntradas > CANTIDAD_MAXIMA_ENTRADAS
+    ? `No se pueden comprar más de ${CANTIDAD_MAXIMA_ENTRADAS} entradas.`
+    : '';
+
   // Sin validaciones "required": las reglas las aplica la API y acá se muestra su mensaje
   return (
     <form onSubmit={confirmarCompra} className="formulario" noValidate>
@@ -62,11 +77,26 @@ export const CompraPage = ({ onCompraRealizada }: CompraPageProps) => {
       <div className="fila">
         <label>
           Fecha de visita
-          <input type="date" min={hoyComoTexto()} value={fechaVisita} onChange={(e) => setFechaVisita(e.target.value)} />
+          <input
+            type="date"
+            min={hoyComoTexto()}
+            value={fechaVisita}
+            aria-invalid={Boolean(avisoFecha)}
+            onChange={(e) => setFechaVisita(e.target.value)}
+          />
+          {avisoFecha && <span className="aviso" role="alert">⚠ {avisoFecha}</span>}
         </label>
         <label>
           Cantidad de entradas (máx. 10)
-          <input type="number" min={1} max={10} value={cantidadEntradas} onChange={(e) => cambiarCantidad(e.target.value)} />
+          <input
+            type="number"
+            min={1}
+            max={CANTIDAD_MAXIMA_ENTRADAS}
+            value={cantidadEntradas}
+            aria-invalid={Boolean(avisoCantidad)}
+            onChange={(e) => cambiarCantidad(e.target.value)}
+          />
+          {avisoCantidad && <span className="aviso" role="alert">⚠ {avisoCantidad}</span>}
         </label>
       </div>
 

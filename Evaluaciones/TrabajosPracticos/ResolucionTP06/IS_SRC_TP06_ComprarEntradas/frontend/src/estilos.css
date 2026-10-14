@@ -115,3 +115,15 @@ legend { font-weight: 700; padding: 0 6px; }
 
 .resultado { text-align: center; display: flex; flex-direction: column; gap: 12px; align-items: center; }
 .resultado .icono { font-size: 3rem; margin: 0; }
+
+/* Aviso inmediato debajo de un campo con un valor que la compra no va a aceptar */
+.aviso {
+  color: var(--error);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+input[aria-invalid='true'] {
+  border-color: var(--error);
+  outline-color: var(--error);
+}
