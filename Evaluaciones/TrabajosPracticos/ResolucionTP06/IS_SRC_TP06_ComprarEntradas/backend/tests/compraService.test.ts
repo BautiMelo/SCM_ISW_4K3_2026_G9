@@ -28,6 +28,15 @@ describe('comprarEntradas', () => {
     expect(resultado.fechaVisita).toBe('2026-10-14');
   });
 
+  describe('usuario', () => {
+    test('comprar sin ser un usuario registrado falla', async () => {
+      const solicitud = crearSolicitudValida({ usuario: undefined });
+
+      await expect(comprarEntradas(solicitud, crearDependencias()))
+        .rejects.toThrow('Solo los usuarios registrados pueden comprar entradas');
+    });
+  });
+
   describe('forma de pago', () => {
     test('comprar sin seleccionar forma de pago falla', async () => {
       const solicitud = crearSolicitudValida({ formaPago: undefined });
