@@ -44,6 +44,37 @@ describe('comprarEntradas', () => {
     });
   });
 
+  describe('fecha de visita', () => {
+    test('comprar para una fecha pasada falla', async () => {
+      const solicitud = crearSolicitudValida({ fechaVisita: '2026-10-11' }); // domingo, ayer
+
+      await expect(comprarEntradas(solicitud, crearDependencias()))
+        .rejects.toThrow('La fecha de visita debe ser hoy o una fecha futura');
+    });
+
+    test('comprar para el día actual (valor límite) es válido', async () => {
+      const solicitud = crearSolicitudValida({ fechaVisita: '2026-10-12' }); // lunes, hoy
+
+      const resultado = await comprarEntradas(solicitud, crearDependencias());
+
+      expect(resultado.fechaVisita).toBe('2026-10-12');
+    });
+
+    test('comprar sin indicar la fecha de visita falla', async () => {
+      const solicitud = crearSolicitudValida({ fechaVisita: '' });
+
+      await expect(comprarEntradas(solicitud, crearDependencias()))
+        .rejects.toThrow('Debe indicar una fecha de visita válida (AAAA-MM-DD)');
+    });
+
+    test('comprar con una fecha de visita con formato inválido falla', async () => {
+      const solicitud = crearSolicitudValida({ fechaVisita: '14/10/2026' });
+
+      await expect(comprarEntradas(solicitud, crearDependencias()))
+        .rejects.toThrow('Debe indicar una fecha de visita válida (AAAA-MM-DD)');
+    });
+  });
+
   describe('días de apertura del parque', () => {
     test('comprar para un martes (parque cerrado) falla', async () => {
       const solicitud = crearSolicitudValida({ fechaVisita: '2026-10-13' });
