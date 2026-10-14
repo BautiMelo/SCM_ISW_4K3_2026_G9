@@ -140,4 +140,61 @@ describe('comprarEntradas', () => {
         .rejects.toThrow('La cantidad de entradas debe ser un número entero entre 1 y 10');
     });
   });
+
+  describe('datos de cada visitante', () => {
+    test('comprar sin indicar los datos de todos los visitantes falla', async () => {
+      const solicitud = crearSolicitudValida({
+        cantidadEntradas: 3,
+        visitantes: [{ edad: 30, tipoPase: 'REGULAR' }, { edad: 8, tipoPase: 'VIP' }],
+      });
+
+      await expect(comprarEntradas(solicitud, crearDependencias()))
+        .rejects.toThrow('Debe indicar la edad y el tipo de pase de cada uno de los 3 visitantes');
+    });
+
+    test('comprar sin indicar la edad de un visitante falla', async () => {
+      const solicitud = crearSolicitudValida({
+        visitantes: [{ edad: 30, tipoPase: 'REGULAR' }, { tipoPase: 'VIP' }],
+      });
+
+      await expect(comprarEntradas(solicitud, crearDependencias()))
+        .rejects.toThrow('La edad de cada visitante debe ser un número entero entre 0 y 120');
+    });
+
+    test('comprar con una edad negativa falla', async () => {
+      const solicitud = crearSolicitudValida({
+        visitantes: [{ edad: 30, tipoPase: 'REGULAR' }, { edad: -1, tipoPase: 'VIP' }],
+      });
+
+      await expect(comprarEntradas(solicitud, crearDependencias()))
+        .rejects.toThrow('La edad de cada visitante debe ser un número entero entre 0 y 120');
+    });
+
+    test('comprar con una edad no entera falla', async () => {
+      const solicitud = crearSolicitudValida({
+        visitantes: [{ edad: 30.5, tipoPase: 'REGULAR' }, { edad: 8, tipoPase: 'VIP' }],
+      });
+
+      await expect(comprarEntradas(solicitud, crearDependencias()))
+        .rejects.toThrow('La edad de cada visitante debe ser un número entero entre 0 y 120');
+    });
+
+    test('comprar sin indicar el tipo de pase de un visitante falla', async () => {
+      const solicitud = crearSolicitudValida({
+        visitantes: [{ edad: 30, tipoPase: 'REGULAR' }, { edad: 8 }],
+      });
+
+      await expect(comprarEntradas(solicitud, crearDependencias()))
+        .rejects.toThrow('El tipo de pase de cada visitante debe ser VIP o REGULAR');
+    });
+
+    test('comprar con un tipo de pase inexistente falla', async () => {
+      const solicitud = crearSolicitudValida({
+        visitantes: [{ edad: 30, tipoPase: 'PLATINO' }, { edad: 8, tipoPase: 'VIP' }],
+      });
+
+      await expect(comprarEntradas(solicitud, crearDependencias()))
+        .rejects.toThrow('El tipo de pase de cada visitante debe ser VIP o REGULAR');
+    });
+  });
 });

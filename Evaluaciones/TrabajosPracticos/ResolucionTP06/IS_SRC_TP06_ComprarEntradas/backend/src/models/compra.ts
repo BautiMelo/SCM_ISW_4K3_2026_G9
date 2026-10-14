@@ -4,9 +4,10 @@ export interface Usuario {
   email: string;
 }
 
+// Opcionales porque la solicitud llega desde afuera y puede venir incompleta: comprarEntradas la valida
 export interface Visitante {
-  edad: number;
-  tipoPase: string;
+  edad?: number;
+  tipoPase?: string;
 }
 
 export interface SolicitudCompra {
