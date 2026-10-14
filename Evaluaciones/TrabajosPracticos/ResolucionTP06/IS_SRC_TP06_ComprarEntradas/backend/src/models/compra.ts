@@ -19,8 +19,19 @@ export interface SolicitudCompra {
   formaPago?: string;
 }
 
+export interface Mail {
+  destinatario: string;
+  asunto: string;
+  cuerpo: string; // HTML
+}
+
+export interface EnviadorMail {
+  enviar: (mail: Mail) => Promise<void>;
+}
+
 export interface DependenciasCompra {
   fechaActual: Date;
+  enviadorMail: EnviadorMail;
 }
 
 export interface ResultadoCompra {
@@ -28,4 +39,5 @@ export interface ResultadoCompra {
   cantidadEntradas: number;
   fechaVisita: string;
   montoTotal: number;
+  codigoReserva: string;
 }

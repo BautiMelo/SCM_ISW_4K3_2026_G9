@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import { CompraError } from '../errors/compraError';
 import { DependenciasCompra, ResultadoCompra, SolicitudCompra, Usuario, Visitante } from '../models/compra';
 
@@ -100,10 +101,25 @@ export const comprarEntradas = async (
   validarCantidadEntradas(solicitud.cantidadEntradas);
   validarVisitantes(solicitud.visitantes, solicitud.cantidadEntradas);
 
+  const montoTotal = calcularMontoTotal(solicitud.visitantes);
+  const codigoReserva = randomUUID().replace(/-/g, '').slice(0, 8).toUpperCase();
+  const detalle = `${solicitud.cantidadEntradas} entradas para el ${formatearFecha(fechaVisita)}`;
+
+  await dependencias.enviadorMail.enviar({
+    destinatario: solicitud.usuario!.email,
+    asunto: 'EcoHarmony Park - Confirmación de tu reserva',
+    cuerpo: `
+      <h2>¡Gracias por tu reserva, ${solicitud.usuario!.nombre}!</h2>
+      <p>Reservaste <strong>${detalle}</strong>.</p>
+      <p>Total a pagar en boletería: <strong>$${montoTotal}</strong></p>
+      <p>Código de reserva: <strong>${codigoReserva}</strong></p>`,
+  });
+
   return {
-    mensaje: `Compra realizada con éxito: ${solicitud.cantidadEntradas} entradas para el ${formatearFecha(fechaVisita)}`,
+    mensaje: `Compra realizada con éxito: ${detalle}`,
     cantidadEntradas: solicitud.cantidadEntradas,
     fechaVisita: solicitud.fechaVisita,
-    montoTotal: calcularMontoTotal(solicitud.visitantes),
+    montoTotal,
+    codigoReserva,
   };
 };
