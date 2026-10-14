@@ -43,4 +43,20 @@ describe('comprarEntradas', () => {
         .rejects.toThrow('Debe seleccionar la forma de pago: efectivo o tarjeta');
     });
   });
+
+  describe('días de apertura del parque', () => {
+    test('comprar para un martes (parque cerrado) falla', async () => {
+      const solicitud = crearSolicitudValida({ fechaVisita: '2026-10-13' });
+
+      await expect(comprarEntradas(solicitud, crearDependencias()))
+        .rejects.toThrow('El parque está cerrado ese día. Abre todos los días excepto martes y jueves');
+    });
+
+    test('comprar para un jueves (parque cerrado) falla', async () => {
+      const solicitud = crearSolicitudValida({ fechaVisita: '2026-10-15' });
+
+      await expect(comprarEntradas(solicitud, crearDependencias()))
+        .rejects.toThrow('El parque está cerrado ese día. Abre todos los días excepto martes y jueves');
+    });
+  });
 });
