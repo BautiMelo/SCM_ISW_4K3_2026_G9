@@ -55,6 +55,9 @@ export const comprarEntradas = async (
   solicitud: SolicitudCompra,
   dependencias: DependenciasCompra,
 ): Promise<ResultadoCompra> => {
+  if (!solicitud.usuario) {
+    throw new Error('Solo los usuarios registrados pueden comprar entradas');
+  }
   validarFormaPago(solicitud.formaPago);
   const fechaVisita = validarFechaVisita(solicitud.fechaVisita, dependencias.fechaActual);
   validarDiaApertura(fechaVisita);
