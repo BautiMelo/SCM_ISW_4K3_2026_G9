@@ -9,6 +9,10 @@ export const comprarEntradas = async (
   }
 
   const [anio, mes, dia] = solicitud.fechaVisita.split('-');
+  const diaSemana = new Date(Number(anio), Number(mes) - 1, Number(dia)).getDay();
+  if (diaSemana === 2 || diaSemana === 4) {
+    throw new Error('El parque está cerrado ese día. Abre todos los días excepto martes y jueves');
+  }
 
   return {
     mensaje: `Compra realizada con éxito: ${solicitud.cantidadEntradas} entradas para el ${dia}/${mes}/${anio}`,
