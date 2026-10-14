@@ -1,4 +1,4 @@
-import { comprarEntradas } from '../src/services/compraService';
+import { calcularMontoTotal, comprarEntradas } from '../src/services/compraService';
 import { SolicitudCompra } from '../src/models/compra';
 
 // Fecha actual fija para que los tests no dependan del día en que se corren: lunes 12/10/2026
@@ -196,5 +196,29 @@ describe('comprarEntradas', () => {
       await expect(comprarEntradas(solicitud, crearDependencias()))
         .rejects.toThrow('El tipo de pase de cada visitante debe ser VIP o REGULAR');
     });
+  });
+
+  test('la compra informa el monto total a pagar', async () => {
+    // REGULAR adulto ($6.000) + VIP de 8 años con 50% ($5.000)
+    const resultado = await comprarEntradas(crearSolicitudValida(), crearDependencias());
+
+    expect(resultado.montoTotal).toBe(11000);
+  });
+});
+
+describe('calcularMontoTotal', () => {
+  test.each([
+    ['REGULAR adulto', [{ edad: 30, tipoPase: 'REGULAR' }], 6000],
+    ['VIP adulto', [{ edad: 30, tipoPase: 'VIP' }], 10000],
+    ['REGULAR menor de 12 paga la mitad', [{ edad: 11, tipoPase: 'REGULAR' }], 3000],
+    ['REGULAR de 12 años (valor límite) paga completo', [{ edad: 12, tipoPase: 'REGULAR' }], 6000],
+    ['VIP jubilado paga la mitad', [{ edad: 70, tipoPase: 'VIP', esJubilado: true }], 5000],
+    ['varios visitantes suman sus precios', [
+      { edad: 40, tipoPase: 'VIP' },
+      { edad: 38, tipoPase: 'REGULAR' },
+      { edad: 5, tipoPase: 'REGULAR' },
+    ], 19000],
+  ])('%s', (_descripcion, visitantes, montoEsperado) => {
+    expect(calcularMontoTotal(visitantes)).toBe(montoEsperado);
   });
 });
