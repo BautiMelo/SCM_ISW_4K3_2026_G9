@@ -1,6 +1,7 @@
-import { DependenciasCompra, ResultadoCompra, SolicitudCompra } from '../models/compra';
+import { DependenciasCompra, ResultadoCompra, SolicitudCompra, Visitante } from '../models/compra';
 
 const FORMAS_PAGO = ['EFECTIVO', 'TARJETA'];
+const TIPOS_PASE = ['VIP', 'REGULAR'];
 // getDay(): 0 = domingo, 1 = lunes, 2 = martes, ..., 4 = jueves
 const DIAS_CERRADOS = [2, 4];
 
@@ -51,6 +52,21 @@ export const validarCantidadEntradas = (cantidadEntradas: number): void => {
   }
 };
 
+export const validarVisitantes = (visitantes: Visitante[], cantidadEntradas: number): void => {
+  if (!Array.isArray(visitantes) || visitantes.length !== cantidadEntradas) {
+    throw new Error(`Debe indicar la edad y el tipo de pase de cada uno de los ${cantidadEntradas} visitantes`);
+  }
+
+  for (const visitante of visitantes) {
+    if (!Number.isInteger(visitante.edad) || visitante.edad! < 0 || visitante.edad! > 120) {
+      throw new Error('La edad de cada visitante debe ser un número entero entre 0 y 120');
+    }
+    if (!visitante.tipoPase || !TIPOS_PASE.includes(visitante.tipoPase)) {
+      throw new Error('El tipo de pase de cada visitante debe ser VIP o REGULAR');
+    }
+  }
+};
+
 export const comprarEntradas = async (
   solicitud: SolicitudCompra,
   dependencias: DependenciasCompra,
@@ -62,6 +78,7 @@ export const comprarEntradas = async (
   const fechaVisita = validarFechaVisita(solicitud.fechaVisita, dependencias.fechaActual);
   validarDiaApertura(fechaVisita);
   validarCantidadEntradas(solicitud.cantidadEntradas);
+  validarVisitantes(solicitud.visitantes, solicitud.cantidadEntradas);
 
   return {
     mensaje: `Compra realizada con éxito: ${solicitud.cantidadEntradas} entradas para el ${formatearFecha(fechaVisita)}`,
