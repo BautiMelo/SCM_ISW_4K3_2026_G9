@@ -28,6 +28,12 @@ export const validarDiaApertura = (fechaVisita: Date): void => {
   }
 };
 
+export const validarCantidadEntradas = (cantidadEntradas: number): void => {
+  if (!Number.isInteger(cantidadEntradas) || cantidadEntradas < 1 || cantidadEntradas > 10) {
+    throw new Error('La cantidad de entradas debe ser un número entero entre 1 y 10');
+  }
+};
+
 export const comprarEntradas = async (
   solicitud: SolicitudCompra,
   dependencias: DependenciasCompra,
@@ -36,6 +42,7 @@ export const comprarEntradas = async (
 
   validarFormaPago(solicitud.formaPago);
   validarDiaApertura(fechaVisita);
+  validarCantidadEntradas(solicitud.cantidadEntradas);
 
   return {
     mensaje: `Compra realizada con éxito: ${solicitud.cantidadEntradas} entradas para el ${formatearFecha(fechaVisita)}`,
