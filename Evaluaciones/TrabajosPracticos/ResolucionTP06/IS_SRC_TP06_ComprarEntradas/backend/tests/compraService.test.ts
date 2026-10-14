@@ -73,6 +73,13 @@ describe('comprarEntradas', () => {
       await expect(comprarEntradas(solicitud, crearDependencias()))
         .rejects.toThrow('Debe indicar una fecha de visita válida (AAAA-MM-DD)');
     });
+
+    test('comprar para una fecha inexistente (31 de febrero) falla', async () => {
+      const solicitud = crearSolicitudValida({ fechaVisita: '2027-02-31' });
+
+      await expect(comprarEntradas(solicitud, crearDependencias()))
+        .rejects.toThrow('Debe indicar una fecha de visita válida (AAAA-MM-DD)');
+    });
   });
 
   describe('días de apertura del parque', () => {
