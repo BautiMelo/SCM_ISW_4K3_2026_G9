@@ -148,7 +148,6 @@ export const comprarEntradas = async (
       codigoReserva: compra.codigoReserva,
       montoTotal: compra.montoTotal,
       descripcion: `${compra.cantidadEntradas} entradas EcoHarmony Park para el ${formatearFecha(fechaVisita)}`,
-      emailComprador: compra.usuario.email,
     });
     return { ...armarResultado(compra), urlPago };
   }

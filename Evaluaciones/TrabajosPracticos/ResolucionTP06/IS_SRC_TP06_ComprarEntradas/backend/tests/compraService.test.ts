@@ -221,7 +221,6 @@ describe('comprarEntradas', () => {
         codigoReserva: resultado.codigoReserva,
         montoTotal: 11000,
         descripcion: '2 entradas EcoHarmony Park para el 14/10/2026',
-        emailComprador: 'ana@mail.com',
       });
     });
 

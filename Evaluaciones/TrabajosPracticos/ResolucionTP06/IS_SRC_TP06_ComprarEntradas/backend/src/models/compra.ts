@@ -52,7 +52,6 @@ export interface DatosPago {
   codigoReserva: string;
   montoTotal: number;
   descripcion: string;
-  emailComprador: string;
 }
 
 export interface PagoConsultado {
