@@ -112,6 +112,17 @@ export const comprarEntradas = async (
     codigoReserva,
   };
 
+  await dependencias.repositorioCompras.guardar({
+    codigoReserva,
+    usuario: solicitud.usuario!,
+    fechaVisita: solicitud.fechaVisita,
+    cantidadEntradas: solicitud.cantidadEntradas,
+    visitantes: solicitud.visitantes,
+    formaPago: solicitud.formaPago!,
+    montoTotal,
+    estado: solicitud.formaPago === 'TARJETA' ? 'PENDIENTE_PAGO' : 'RESERVADA',
+  });
+
   if (solicitud.formaPago === 'TARJETA') {
     resultado.urlPago = await dependencias.pasarelaPago.crearPago({
       codigoReserva,
@@ -130,6 +141,52 @@ export const comprarEntradas = async (
       <p>Reservaste <strong>${detalle}</strong>.</p>
       <p>Total a pagar en boletería: <strong>$${montoTotal}</strong></p>
       <p>Código de reserva: <strong>${codigoReserva}</strong></p>`,
+  });
+
+  return resultado;
+};
+
+export const confirmarPago = async (
+  codigoReserva: string,
+  idPago: string,
+  dependencias: DependenciasCompra,
+): Promise<ResultadoCompra> => {
+  const compra = await dependencias.repositorioCompras.buscarPorCodigo(codigoReserva);
+  if (!compra) {
+    throw new CompraError(`No existe una compra con el código ${codigoReserva}`);
+  }
+
+  const detalle = `${compra.cantidadEntradas} entradas para el ${formatearFecha(parsearFecha(compra.fechaVisita))}`;
+  const resultado: ResultadoCompra = {
+    mensaje: `Compra realizada con éxito: ${detalle}`,
+    cantidadEntradas: compra.cantidadEntradas,
+    fechaVisita: compra.fechaVisita,
+    montoTotal: compra.montoTotal,
+    codigoReserva,
+  };
+
+  // Si el usuario recarga la página de resultado no se vuelve a enviar el mail
+  if (compra.estado === 'PAGADA') {
+    return resultado;
+  }
+
+  const pago = await dependencias.pasarelaPago.consultarPago(idPago);
+  if (pago.codigoReserva !== codigoReserva) {
+    throw new CompraError('El pago no corresponde a esta compra');
+  }
+  if (pago.estado !== 'approved') {
+    throw new CompraError('El pago no fue aprobado por Mercado Pago');
+  }
+
+  await dependencias.repositorioCompras.guardar({ ...compra, estado: 'PAGADA' });
+  await dependencias.enviadorMail.enviar({
+    destinatario: compra.usuario.email,
+    asunto: 'EcoHarmony Park - Confirmación de tu compra',
+    cuerpo: `
+      <h2>¡Gracias por tu compra, ${compra.usuario.nombre}!</h2>
+      <p>Compraste <strong>${detalle}</strong>.</p>
+      <p>Total pagado con Mercado Pago: <strong>$${compra.montoTotal}</strong></p>
+      <p>Código de reserva: <strong>${codigoReserva}</strong> (presentalo en el ingreso al parque)</p>`,
   });
 
   return resultado;
