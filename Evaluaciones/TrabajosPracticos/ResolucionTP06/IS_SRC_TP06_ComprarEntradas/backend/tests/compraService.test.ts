@@ -17,10 +17,13 @@ const crearSolicitudValida = (cambios: Partial<SolicitudCompra> = {}): Solicitud
   ...cambios,
 });
 
-// Dobles de prueba: reemplazan al mail real para poder verificar qué se envió sin mandar nada
+const URL_PAGO_MP = 'https://www.mercadopago.com.ar/checkout/v1/redirect?pref_id=123';
+
+// Dobles de prueba: reemplazan al mail y a Mercado Pago reales para verificar qué se les pidió sin llamarlos
 const crearDependencias = () => ({
   fechaActual: FECHA_ACTUAL,
   enviadorMail: { enviar: jest.fn().mockResolvedValue(undefined) },
+  pasarelaPago: { crearPago: jest.fn().mockResolvedValue(URL_PAGO_MP) },
 });
 
 describe('comprarEntradas', () => {
@@ -199,6 +202,39 @@ describe('comprarEntradas', () => {
 
       await expect(comprarEntradas(solicitud, crearDependencias()))
         .rejects.toThrow('El tipo de pase de cada visitante debe ser VIP o REGULAR');
+    });
+  });
+
+  describe('pago con tarjeta (Mercado Pago)', () => {
+    test('la compra con tarjeta crea el pago en Mercado Pago y devuelve la URL para redirigir', async () => {
+      const dependencias = crearDependencias();
+
+      const resultado = await comprarEntradas(crearSolicitudValida({ formaPago: 'TARJETA' }), dependencias);
+
+      expect(resultado.urlPago).toBe(URL_PAGO_MP);
+      expect(dependencias.pasarelaPago.crearPago).toHaveBeenCalledWith({
+        codigoReserva: resultado.codigoReserva,
+        montoTotal: 11000,
+        descripcion: '2 entradas EcoHarmony Park para el 14/10/2026',
+        emailComprador: 'ana@mail.com',
+      });
+    });
+
+    test('la compra con tarjeta no envía el mail hasta que se apruebe el pago', async () => {
+      const dependencias = crearDependencias();
+
+      await comprarEntradas(crearSolicitudValida({ formaPago: 'TARJETA' }), dependencias);
+
+      expect(dependencias.enviadorMail.enviar).not.toHaveBeenCalled();
+    });
+
+    test('la compra en efectivo no crea un pago en Mercado Pago', async () => {
+      const dependencias = crearDependencias();
+
+      const resultado = await comprarEntradas(crearSolicitudValida({ formaPago: 'EFECTIVO' }), dependencias);
+
+      expect(dependencias.pasarelaPago.crearPago).not.toHaveBeenCalled();
+      expect(resultado.urlPago).toBeUndefined();
     });
   });
 
