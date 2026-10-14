@@ -59,4 +59,38 @@ describe('comprarEntradas', () => {
         .rejects.toThrow('El parque está cerrado ese día. Abre todos los días excepto martes y jueves');
     });
   });
+
+  describe('cantidad de entradas', () => {
+    const crearVisitantes = (cantidad: number) =>
+      Array.from({ length: cantidad }, () => ({ edad: 25, tipoPase: 'REGULAR' }));
+
+    test('comprar más de 10 entradas falla', async () => {
+      const solicitud = crearSolicitudValida({ cantidadEntradas: 11, visitantes: crearVisitantes(11) });
+
+      await expect(comprarEntradas(solicitud, crearDependencias()))
+        .rejects.toThrow('La cantidad de entradas debe ser un número entero entre 1 y 10');
+    });
+
+    test('comprar exactamente 10 entradas (valor límite) es válido', async () => {
+      const solicitud = crearSolicitudValida({ cantidadEntradas: 10, visitantes: crearVisitantes(10) });
+
+      const resultado = await comprarEntradas(solicitud, crearDependencias());
+
+      expect(resultado.cantidadEntradas).toBe(10);
+    });
+
+    test('comprar 0 entradas falla', async () => {
+      const solicitud = crearSolicitudValida({ cantidadEntradas: 0, visitantes: [] });
+
+      await expect(comprarEntradas(solicitud, crearDependencias()))
+        .rejects.toThrow('La cantidad de entradas debe ser un número entero entre 1 y 10');
+    });
+
+    test('comprar una cantidad no entera de entradas falla', async () => {
+      const solicitud = crearSolicitudValida({ cantidadEntradas: 2.5 });
+
+      await expect(comprarEntradas(solicitud, crearDependencias()))
+        .rejects.toThrow('La cantidad de entradas debe ser un número entero entre 1 y 10');
+    });
+  });
 });
