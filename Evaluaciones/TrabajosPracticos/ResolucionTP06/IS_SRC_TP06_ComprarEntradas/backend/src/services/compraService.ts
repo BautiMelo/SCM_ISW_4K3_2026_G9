@@ -22,7 +22,21 @@ export const validarFormaPago = (formaPago?: string): void => {
   }
 };
 
-export const validarDiaApertura = (fechaVisita: Date): void => {
+export const validarFechaVisita = (fechaTexto: string, fechaActual: Date): Date => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(fechaTexto)) {
+    throw new Error('Debe indicar una fecha de visita válida (AAAA-MM-DD)');
+  }
+
+  const fechaVisita = parsearFecha(fechaTexto);
+  const hoy = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), fechaActual.getDate());
+  if (fechaVisita < hoy) {
+    throw new Error('La fecha de visita debe ser hoy o una fecha futura');
+  }
+
+  return fechaVisita;
+};
+
+export const validarDiaApertura =(fechaVisita: Date): void => {
   if (DIAS_CERRADOS.includes(fechaVisita.getDay())) {
     throw new Error('El parque está cerrado ese día. Abre todos los días excepto martes y jueves');
   }
@@ -38,9 +52,8 @@ export const comprarEntradas = async (
   solicitud: SolicitudCompra,
   dependencias: DependenciasCompra,
 ): Promise<ResultadoCompra> => {
-  const fechaVisita = parsearFecha(solicitud.fechaVisita);
-
   validarFormaPago(solicitud.formaPago);
+  const fechaVisita = validarFechaVisita(solicitud.fechaVisita, dependencias.fechaActual);
   validarDiaApertura(fechaVisita);
   validarCantidadEntradas(solicitud.cantidadEntradas);
 
