@@ -8,6 +8,7 @@ export interface Usuario {
 export interface Visitante {
   edad?: number;
   tipoPase?: string;
+  esJubilado?: boolean;
 }
 
 export interface SolicitudCompra {
@@ -26,4 +27,5 @@ export interface ResultadoCompra {
   mensaje: string;
   cantidadEntradas: number;
   fechaVisita: string;
+  montoTotal: number;
 }

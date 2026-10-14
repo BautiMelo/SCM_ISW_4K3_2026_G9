@@ -7,6 +7,8 @@ const TIPOS_PASE = ['VIP', 'REGULAR'];
 const DIAS_CERRADOS = [2, 4];
 const CANTIDAD_MAXIMA_ENTRADAS = 10;
 const EDAD_MAXIMA = 120;
+const PRECIOS_PASE: Record<string, number> = { REGULAR: 6000, VIP: 10000 };
+const EDAD_MINIMA_SIN_DESCUENTO = 12;
 
 // Convierte 'AAAA-MM-DD' a Date en hora local (new Date('AAAA-MM-DD') la tomaría en UTC y podría correrse un día)
 const parsearFecha = (fecha: string): Date => {
@@ -79,6 +81,14 @@ export const validarVisitantes = (visitantes: Visitante[], cantidadEntradas: num
   }
 };
 
+// Menores de 12 años y jubilados pagan la mitad del precio del pase
+export const calcularMontoTotal = (visitantes: Visitante[]): number =>
+  visitantes.reduce((total, visitante) => {
+    const precioPase = PRECIOS_PASE[visitante.tipoPase!];
+    const tieneDescuento = visitante.esJubilado || visitante.edad! < EDAD_MINIMA_SIN_DESCUENTO;
+    return total + (tieneDescuento ? precioPase / 2 : precioPase);
+  }, 0);
+
 export const comprarEntradas = async (
   solicitud: SolicitudCompra,
   dependencias: DependenciasCompra,
@@ -94,5 +104,6 @@ export const comprarEntradas = async (
     mensaje: `Compra realizada con éxito: ${solicitud.cantidadEntradas} entradas para el ${formatearFecha(fechaVisita)}`,
     cantidadEntradas: solicitud.cantidadEntradas,
     fechaVisita: solicitud.fechaVisita,
+    montoTotal: calcularMontoTotal(solicitud.visitantes),
   };
 };
