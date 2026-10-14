@@ -17,7 +17,11 @@ const crearSolicitudValida = (cambios: Partial<SolicitudCompra> = {}): Solicitud
   ...cambios,
 });
 
-const crearDependencias = () => ({ fechaActual: FECHA_ACTUAL });
+// Dobles de prueba: reemplazan al mail real para poder verificar qué se envió sin mandar nada
+const crearDependencias = () => ({
+  fechaActual: FECHA_ACTUAL,
+  enviadorMail: { enviar: jest.fn().mockResolvedValue(undefined) },
+});
 
 describe('comprarEntradas', () => {
   test('compra exitosa en efectivo informa la cantidad de entradas y la fecha', async () => {
@@ -203,6 +207,36 @@ describe('comprarEntradas', () => {
     const resultado = await comprarEntradas(crearSolicitudValida(), crearDependencias());
 
     expect(resultado.montoTotal).toBe(11000);
+  });
+
+  describe('mail de confirmación', () => {
+    test('la compra en efectivo envía un mail de confirmación al usuario', async () => {
+      const dependencias = crearDependencias();
+
+      const resultado = await comprarEntradas(crearSolicitudValida(), dependencias);
+
+      expect(dependencias.enviadorMail.enviar).toHaveBeenCalledTimes(1);
+      const mail = dependencias.enviadorMail.enviar.mock.calls[0][0];
+      expect(mail.destinatario).toBe('ana@mail.com');
+      expect(mail.asunto).toBe('EcoHarmony Park - Confirmación de tu reserva');
+      expect(mail.cuerpo).toContain('2 entradas para el 14/10/2026');
+      expect(mail.cuerpo).toContain('$11000');
+      expect(mail.cuerpo).toContain(resultado.codigoReserva);
+    });
+
+    test('la compra genera un código de reserva', async () => {
+      const resultado = await comprarEntradas(crearSolicitudValida(), crearDependencias());
+
+      expect(resultado.codigoReserva).toMatch(/^[A-Z0-9]{8}$/);
+    });
+
+    test('una compra inválida no envía mail', async () => {
+      const dependencias = crearDependencias();
+
+      await expect(comprarEntradas(crearSolicitudValida({ cantidadEntradas: 11 }), dependencias)).rejects.toThrow();
+
+      expect(dependencias.enviadorMail.enviar).not.toHaveBeenCalled();
+    });
   });
 });
 
