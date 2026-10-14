@@ -82,3 +82,8 @@ export interface DependenciasCompra {
   pasarelaPago: PasarelaPago;
   repositorioCompras: RepositorioCompras;
 }
+
+// Usuario tal como está guardado (mock de base de datos). La contraseña nunca sale de la API.
+export interface UsuarioRegistrado extends Usuario {
+  password: string;
+}
