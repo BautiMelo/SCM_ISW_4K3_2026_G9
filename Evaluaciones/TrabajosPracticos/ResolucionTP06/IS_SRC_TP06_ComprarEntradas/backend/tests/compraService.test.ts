@@ -27,4 +27,20 @@ describe('comprarEntradas', () => {
     expect(resultado.cantidadEntradas).toBe(2);
     expect(resultado.fechaVisita).toBe('2026-10-14');
   });
+
+  describe('forma de pago', () => {
+    test('comprar sin seleccionar forma de pago falla', async () => {
+      const solicitud = crearSolicitudValida({ formaPago: undefined });
+
+      await expect(comprarEntradas(solicitud, crearDependencias()))
+        .rejects.toThrow('Debe seleccionar la forma de pago: efectivo o tarjeta');
+    });
+
+    test('comprar con una forma de pago no contemplada falla', async () => {
+      const solicitud = crearSolicitudValida({ formaPago: 'CHEQUE' });
+
+      await expect(comprarEntradas(solicitud, crearDependencias()))
+        .rejects.toThrow('Debe seleccionar la forma de pago: efectivo o tarjeta');
+    });
+  });
 });
