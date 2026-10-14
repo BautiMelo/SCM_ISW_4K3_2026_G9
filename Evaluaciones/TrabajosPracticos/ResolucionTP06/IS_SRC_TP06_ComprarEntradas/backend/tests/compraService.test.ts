@@ -1,4 +1,5 @@
-import { calcularMontoTotal, comprarEntradas } from '../src/services/compraService';
+import { calcularMontoTotal, comprarEntradas, confirmarPago } from '../src/services/compraService';
+import { crearRepositorioComprasEnMemoria } from '../src/data/repositorioCompras';
 import { SolicitudCompra } from '../src/models/compra';
 
 // Fecha actual fija para que los tests no dependan del día en que se corren: lunes 12/10/2026
@@ -23,7 +24,11 @@ const URL_PAGO_MP = 'https://www.mercadopago.com.ar/checkout/v1/redirect?pref_id
 const crearDependencias = () => ({
   fechaActual: FECHA_ACTUAL,
   enviadorMail: { enviar: jest.fn().mockResolvedValue(undefined) },
-  pasarelaPago: { crearPago: jest.fn().mockResolvedValue(URL_PAGO_MP) },
+  pasarelaPago: {
+    crearPago: jest.fn().mockResolvedValue(URL_PAGO_MP),
+    consultarPago: jest.fn(),
+  },
+  repositorioCompras: crearRepositorioComprasEnMemoria(),
 });
 
 describe('comprarEntradas', () => {
@@ -238,6 +243,24 @@ describe('comprarEntradas', () => {
     });
   });
 
+  test('la compra en efectivo queda registrada como RESERVADA', async () => {
+    const dependencias = crearDependencias();
+
+    const resultado = await comprarEntradas(crearSolicitudValida(), dependencias);
+
+    const compra = await dependencias.repositorioCompras.buscarPorCodigo(resultado.codigoReserva);
+    expect(compra?.estado).toBe('RESERVADA');
+  });
+
+  test('la compra con tarjeta queda registrada como PENDIENTE_PAGO', async () => {
+    const dependencias = crearDependencias();
+
+    const resultado = await comprarEntradas(crearSolicitudValida({ formaPago: 'TARJETA' }), dependencias);
+
+    const compra = await dependencias.repositorioCompras.buscarPorCodigo(resultado.codigoReserva);
+    expect(compra?.estado).toBe('PENDIENTE_PAGO');
+  });
+
   test('la compra informa el monto total a pagar', async () => {
     // REGULAR adulto ($6.000) + VIP de 8 años con 50% ($5.000)
     const resultado = await comprarEntradas(crearSolicitudValida(), crearDependencias());
@@ -273,6 +296,67 @@ describe('comprarEntradas', () => {
 
       expect(dependencias.enviadorMail.enviar).not.toHaveBeenCalled();
     });
+  });
+});
+
+describe('confirmarPago (vuelta de Mercado Pago)', () => {
+  const ID_PAGO = '987654321';
+
+  // Deja una compra con tarjeta pendiente de pago y configura qué responde Mercado Pago al consultar el pago
+  const prepararCompraConTarjeta = async (estadoPago: string, codigoDelPago?: string) => {
+    const dependencias = crearDependencias();
+    const { codigoReserva } = await comprarEntradas(crearSolicitudValida({ formaPago: 'TARJETA' }), dependencias);
+    dependencias.pasarelaPago.consultarPago.mockResolvedValue({
+      estado: estadoPago,
+      codigoReserva: codigoDelPago ?? codigoReserva,
+    });
+    return { dependencias, codigoReserva };
+  };
+
+  test('con el pago aprobado la compra queda PAGADA, informa cantidad y fecha y envía el mail', async () => {
+    const { dependencias, codigoReserva } = await prepararCompraConTarjeta('approved');
+
+    const resultado = await confirmarPago(codigoReserva, ID_PAGO, dependencias);
+
+    expect(resultado.mensaje).toBe('Compra realizada con éxito: 2 entradas para el 14/10/2026');
+    expect(dependencias.pasarelaPago.consultarPago).toHaveBeenCalledWith(ID_PAGO);
+    expect((await dependencias.repositorioCompras.buscarPorCodigo(codigoReserva))?.estado).toBe('PAGADA');
+    expect(dependencias.enviadorMail.enviar).toHaveBeenCalledTimes(1);
+    const mail = dependencias.enviadorMail.enviar.mock.calls[0][0];
+    expect(mail.destinatario).toBe('ana@mail.com');
+    expect(mail.asunto).toBe('EcoHarmony Park - Confirmación de tu compra');
+    expect(mail.cuerpo).toContain(codigoReserva);
+  });
+
+  test('con el pago rechazado falla y no envía mail', async () => {
+    const { dependencias, codigoReserva } = await prepararCompraConTarjeta('rejected');
+
+    await expect(confirmarPago(codigoReserva, ID_PAGO, dependencias))
+      .rejects.toThrow('El pago no fue aprobado por Mercado Pago');
+    expect(dependencias.enviadorMail.enviar).not.toHaveBeenCalled();
+  });
+
+  test('con un código de reserva inexistente falla', async () => {
+    const dependencias = crearDependencias();
+
+    await expect(confirmarPago('NOEXISTE', ID_PAGO, dependencias))
+      .rejects.toThrow('No existe una compra con el código NOEXISTE');
+  });
+
+  test('con un pago que pertenece a otra compra falla', async () => {
+    const { dependencias, codigoReserva } = await prepararCompraConTarjeta('approved', 'OTRACOMP');
+
+    await expect(confirmarPago(codigoReserva, ID_PAGO, dependencias))
+      .rejects.toThrow('El pago no corresponde a esta compra');
+  });
+
+  test('confirmar dos veces el mismo pago envía un solo mail', async () => {
+    const { dependencias, codigoReserva } = await prepararCompraConTarjeta('approved');
+
+    await confirmarPago(codigoReserva, ID_PAGO, dependencias);
+    await confirmarPago(codigoReserva, ID_PAGO, dependencias);
+
+    expect(dependencias.enviadorMail.enviar).toHaveBeenCalledTimes(1);
   });
 });
 
