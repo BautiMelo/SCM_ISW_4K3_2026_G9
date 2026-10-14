@@ -29,9 +29,21 @@ export interface EnviadorMail {
   enviar: (mail: Mail) => Promise<void>;
 }
 
+export interface DatosPago {
+  codigoReserva: string;
+  montoTotal: number;
+  descripcion: string;
+  emailComprador: string;
+}
+
+export interface PasarelaPago {
+  crearPago: (datos: DatosPago) => Promise<string>; // devuelve la URL a la que se redirige al usuario
+}
+
 export interface DependenciasCompra {
   fechaActual: Date;
   enviadorMail: EnviadorMail;
+  pasarelaPago: PasarelaPago;
 }
 
 export interface ResultadoCompra {
@@ -40,4 +52,5 @@ export interface ResultadoCompra {
   fechaVisita: string;
   montoTotal: number;
   codigoReserva: string;
+  urlPago?: string; // solo si paga con tarjeta
 }

@@ -104,6 +104,23 @@ export const comprarEntradas = async (
   const montoTotal = calcularMontoTotal(solicitud.visitantes);
   const codigoReserva = randomUUID().replace(/-/g, '').slice(0, 8).toUpperCase();
   const detalle = `${solicitud.cantidadEntradas} entradas para el ${formatearFecha(fechaVisita)}`;
+  const resultado: ResultadoCompra = {
+    mensaje: `Compra realizada con éxito: ${detalle}`,
+    cantidadEntradas: solicitud.cantidadEntradas,
+    fechaVisita: solicitud.fechaVisita,
+    montoTotal,
+    codigoReserva,
+  };
+
+  if (solicitud.formaPago === 'TARJETA') {
+    resultado.urlPago = await dependencias.pasarelaPago.crearPago({
+      codigoReserva,
+      montoTotal,
+      descripcion: `${solicitud.cantidadEntradas} entradas EcoHarmony Park para el ${formatearFecha(fechaVisita)}`,
+      emailComprador: solicitud.usuario!.email,
+    });
+    return resultado;
+  }
 
   await dependencias.enviadorMail.enviar({
     destinatario: solicitud.usuario!.email,
@@ -115,11 +132,5 @@ export const comprarEntradas = async (
       <p>Código de reserva: <strong>${codigoReserva}</strong></p>`,
   });
 
-  return {
-    mensaje: `Compra realizada con éxito: ${detalle}`,
-    cantidadEntradas: solicitud.cantidadEntradas,
-    fechaVisita: solicitud.fechaVisita,
-    montoTotal,
-    codigoReserva,
-  };
+  return resultado;
 };
