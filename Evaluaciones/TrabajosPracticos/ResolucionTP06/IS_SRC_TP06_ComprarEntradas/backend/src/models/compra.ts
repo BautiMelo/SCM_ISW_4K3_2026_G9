@@ -72,6 +72,7 @@ export interface PasarelaPago {
 export interface RepositorioCompras {
   guardar: (compra: Compra) => Promise<void>;
   buscarPorCodigo: (codigoReserva: string) => Promise<Compra | undefined>;
+  buscarPorUsuarioYFecha: (usuarioId: number, fechaVisita: string) => Promise<Compra[]>;
 }
 
 export interface DependenciasCompra {

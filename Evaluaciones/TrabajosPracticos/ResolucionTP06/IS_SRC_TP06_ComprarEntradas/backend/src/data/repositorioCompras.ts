@@ -12,5 +12,9 @@ export const crearRepositorioComprasEnMemoria = (): RepositorioCompras => {
       const compra = compras.get(codigoReserva);
       return compra ? { ...compra } : undefined;
     },
+    buscarPorUsuarioYFecha: async (usuarioId, fechaVisita) =>
+      [...compras.values()]
+        .filter((compra) => compra.usuario.id === usuarioId && compra.fechaVisita === fechaVisita)
+        .map((compra) => ({ ...compra })),
   };
 };

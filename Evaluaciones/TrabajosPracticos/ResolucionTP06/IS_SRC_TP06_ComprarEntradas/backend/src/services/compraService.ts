@@ -1,7 +1,8 @@
 import { randomUUID } from 'crypto';
 import { CompraError } from '../errors/compraError';
 import {
-  Compra, DependenciasCompra, Mail, ResultadoCompra, SolicitudCompra, Usuario, Visitante,
+  Compra, DependenciasCompra, EstadoCompra, Mail, RepositorioCompras, ResultadoCompra, SolicitudCompra, Usuario,
+  Visitante,
 } from '../models/compra';
 
 const FORMAS_PAGO = ['EFECTIVO', 'TARJETA'];
@@ -125,6 +126,29 @@ export const validarVisitantes = (visitantes: Visitante[], cantidadEntradas: num
   }
 };
 
+// Las compras pendientes de pago no cuentan: si el usuario abandona Mercado Pago no queda bloqueado
+const ESTADOS_QUE_SUMAN_AL_TOPE: EstadoCompra[] = ['RESERVADA', 'PAGADA'];
+
+export const validarTopeEntradasPorFecha = async (
+  usuario: Usuario,
+  fechaVisita: string,
+  cantidadEntradas: number,
+  repositorioCompras: RepositorioCompras,
+): Promise<void> => {
+  const comprasPrevias = await repositorioCompras.buscarPorUsuarioYFecha(usuario.id, fechaVisita);
+  const entradasPrevias = comprasPrevias
+    .filter((compra) => ESTADOS_QUE_SUMAN_AL_TOPE.includes(compra.estado))
+    .reduce((total, compra) => total + compra.cantidadEntradas, 0);
+
+  if (entradasPrevias + cantidadEntradas > CANTIDAD_MAXIMA_ENTRADAS) {
+    throw new CompraError(
+      `Solo se pueden comprar ${CANTIDAD_MAXIMA_ENTRADAS} entradas por fecha. `
+      + `Ya tenés ${entradasPrevias} para el ${formatearFecha(parsearFecha(fechaVisita))}: `
+      + `podés comprar hasta ${CANTIDAD_MAXIMA_ENTRADAS - entradasPrevias} más`,
+    );
+  }
+};
+
 // Hasta 3 años no pagan; hasta 15 años y desde 60 años pagan la mitad del precio del pase
 const calcularPrecioEntrada = (edad: number, tipoPase: string): number => {
   const precioPase = PRECIOS_PASE[tipoPase];
@@ -175,6 +199,12 @@ export const comprarEntradas = async (
   validarDiaApertura(fechaVisita);
   validarCantidadEntradas(solicitud.cantidadEntradas);
   validarVisitantes(solicitud.visitantes, solicitud.cantidadEntradas);
+  await validarTopeEntradasPorFecha(
+    solicitud.usuario as Usuario,
+    solicitud.fechaVisita,
+    solicitud.cantidadEntradas,
+    dependencias.repositorioCompras,
+  );
 
   // A partir de acá la solicitud ya cumple todos los criterios de aceptación
   const pagaConTarjeta = solicitud.formaPago === 'TARJETA';
