@@ -1,7 +1,9 @@
 # SCM_ISW_4K3_2026_G9
-Repositorio dedicado a la gestión de configuración de la Materia Ingeniería y Calidad de Software
+Repositorio dedicado a la gestión de configuración de la Materia Ingeniería y Calidad de Software.
 
-## 🔆Integrantes del equipo🔆
+Este README es el **Plan de Gestión de Configuración de Software (SCM)** del grupo, y es en sí mismo un Ítem de Configuración (ver punto 5).
+
+## 🔆1. Integrantes del equipo🔆
 | Integrante               | Legajo |
 |--------------------------|--------|
 | Michelazzo, Francisco    | 400974 |
@@ -17,97 +19,51 @@ Repositorio dedicado a la gestión de configuración de la Materia Ingeniería y
 | Gomez, Luciano           | 89058  |
 | Bottari, Lucca           | 82359  |
 
-## 🔆Estructura Jerárquica del Repositorio🔆
-```
+## 🔆2. Estructura Jerárquica del Repositorio🔆
+La estructura define únicamente las carpetas del repositorio. Qué ICs van en cada carpeta y cómo se nombran se detalla en la Matriz de Ítems de Configuración (punto 5).
 
+```
 SCM_ISW_4K3_2026_G9/
 ├── InfoGeneral/
-│   ├── PautasCursado/
-│   │   └── IS_PTA_GEN_<Tema>_v<X.Y>.pdf
-│   └── IS_CRON_GEN_<Descripcion>_v<X.Y>.txt
+│   └── PautasCursado/
 │
 ├── Teoria/
-│   ├── IS_MB_GEN_<Descripcion>_v<X.Y>.txt
-│   ├── Unidad<NroUnidad>/
-│   │   ├── MaterialClase/
-│   │   │   └── IS_MC_U<XX>_<Tema>_v<X.Y>.pdf
-│   │   └── NotasClase/
-│   │       └── IS_NT_U<XX>_<Descripcion>_v<X.Y>.txt
+│   └── Unidad<XX>/                  (Unidad01 a Unidad04)
+│       ├── MaterialClase/
+│       └── NotasClase/
 │
 ├── Practica/
-│   ├── IS_GUIA_GEN_<Descripcion>_v<X.Y>.pdf
 │   ├── NotasClase/
-│   │   └── IS_NP_GEN_<Descripcion>_v<X.Y>.txt
 │   └── ResolucionEjercicios/
-│       └── IS_EJR_TP<XX>_<EjercicioAlumno>_v<X.Y>.<ext>
 │
 └── Evaluaciones/
     ├── Parciales/
-    │   ├── Parcial<NroParcial>/
-    │   │   ├── Resumenes/
-    │   │   │   └── IS_RP_P<N>_<Tema>_v<X.Y>.pdf
-    │   │   ├── Plantillas/
-    │   │   │   └── IS_PLP_P<N>_<Tipo>_v<X.Y>.<ext>
-    │   │   ├── EjerciciosPractica/
-    │   │   │   └── IS_EJP_P<N>_<Tema>_v<X.Y>.pdf
-    │   │   └── Resoluciones/
-    │   │       └── IS_REPA_P<N>_<TemaResolucion>_v<X.Y>.pdf
+    │   └── Parcial<N>/              (Parcial1 y Parcial2)
+    │       ├── Resumenes/
+    │       ├── Plantillas/
+    │       ├── EjerciciosPractica/
+    │       └── Resoluciones/
     │
     └── TrabajosPracticos/
-        ├── IS_ENUN_TP<XX>_<Tema>v<X.Y>.pdf
-        └── Resolucion<NroTp>/
-            └── IS_DOC_TP<XX>_<Descripcion>_v<X.Y>.<ext>
-```
-      
-## 🔆Regla General de Nombrado de Ítems de Configuración🔆
-```
-Todos los Ítems de Configuración (ICs) deben construirse siguiendo la siguiente convención estándar:
-
-IS_[CATEGORIA]_[DETALLE]_[DESCRIPCION]_[VERSION].[EXT]
-
-IS → Prefijo obligatorio que identifica la asignatura (Ingeniería de Software).
-
-[CATEGORIA] → Nemónico o código de abreviación normalizado que clasifica el tipo de artefacto (ej. PTA, CRON, MB, MC, NT, GUIA, NP, EJR, RP, PLP, EJP, REPA, ENUN, DOC, SRC, BLD).
-
-[DETALLE] → Código de contexto o alcance (ej. GEN, U01, U02, TP01, TP02, TP03, P01, P02, DDMM).
-
-[DESCRIPCION] → Nombre semántico y autoexplicativo del artefacto, escrito en PascalCase, sin espacios ni caracteres especiales.
-
-[VERSION] → Notación semántica vX.Y (donde v0.1 a v0.9 representa versiones en progreso/borrador, y v1.0 en adelante representa versiones aprobadas/bajo línea base).
-
-[EXT] → Extensión de archivo formal (.pdf, .docx, .md, .py, .sh, etc.).
+        └── ResolucionTP<XX>/        (solo TPs evaluables: 04, 05, 06, 07, 10, 11, 12 y 13)
 ```
 
-## 🔆Matriz Exhaustiva de Ítems de Configuración (IC)🔆
+## 🔆3. Convención de Nombrado de Ítems de Configuración (ICs)🔆
+Todos los ICs deben nombrarse según el siguiente patrón:
 
-**Regla de nombrado general:** `IS_[CATEGORIA]_[DETALLE]_[DESCRIPCION]_[VERSION].[EXT]`
+```
+IS_[CATEGORIA]_[DETALLE]_[DESCRIPCION].[EXT]
+```
 
-| **NOMBRE DE IC** | **REGLA DE NOMBRADO** | **UBI FÍSICA** | **ÍTEM DEL PRODUCTO** |
-| --- | --- | --- | --- |
-| Pautas de Cursado | IS_PTA_GEN_\<Descripcion\>_v1.0.pdf | SCM_ISW_4K3_2026_G9/InfoGeneral/PautasCursado | Documento de pautas |
-| Cronograma de Clases | IS_CRON_GEN_CronogramaClases_v1.0.txt | SCM_ISW_4K3_2026_G9/InfoGeneral/ | Cronograma oficial |
-| Bibliografía Obligatoria | IS_MB_GEN_LinkBibliografia_v1.0.txt | SCM_ISW_4K3_2026_G9/Teoria/ | Bibliografía |
-| Material Clase U1 | IS_MC_U01_\<Descripcion\>_v1.0.pdf | SCM_ISW_4K3_2026_G9/Teoria/Unidad01/MaterialClase | Presentación de clase |
-| Notas Clase U1 | IS_NT_\<DDMM\>_NotasClase_v1.0.txt | SCM_ISW_4K3_2026_G9/Teoria/Unidad01/NotasClase | Apuntes teóricos |
-| Guía de TPs (Práctica) | IS_GUIA_GEN_GuiaEjerciciosPracticos_v1.0.pdf | SCM_ISW_4K3_2026_G9/Practica/ | Guía práctica |
-| Notas Práctica | IS_NP_\<DDMM\>_Notas\<Nombre\>_v1.0.txt | SCM_ISW_4K3_2026_G9/Practica/NotasClase | Apuntes prácticos |
-| Ejercicio Resuelto TP | IS_EJR_TP\<NN\>_ResolucionEjercicio\<N\>_\<Nombre\>_v1.0.py | SCM_ISW_4K3_2026_G9/Practica/ResolucionEjercicios | Código fuente |
-| Resumen Parcial 1 | IS_RP_P01_\<Descripcion\>_v1.0.pdf | SCM_ISW_4K3_2026_G9/Evaluaciones/Parciales/Parcial1/Resumenes | Resumen teórico |
-| Ejercicio Práctica Parcial 1 | IS_EJP_P01_\<Descripcion\>_v1.0.pdf | SCM_ISW_4K3_2026_G9/Evaluaciones/Parciales/Parcial1/EjerciciosPractica | Enunciado práctico |
-| Plantilla Parcial 1 | IS_PLP_P01_Modelo_v1.0.docx | SCM_ISW_4K3_2026_G9/Evaluaciones/Parciales/Parcial1/Plantillas | Plantilla examen |
-| Resolución Parcial 1 | IS_REPA_P01_Resolucion_v1.0.pdf | SCM_ISW_4K3_2026_G9/Evaluaciones/Parciales/Parcial1/Resoluciones | Resolución oficial |
-| Guía de TPs (Evaluaciones) | IS_GUIA_GEN_GuiaTPs_v1.0.pdf | SCM_ISW_4K3_2026_G9/Evaluaciones/TrabajosPracticos/ | Guía de trabajos prácticos |
-| Resolución TP01 | IS_DOC_TP01_\<Descripcion\>_v1.0.\<ext\> | SCM_ISW_4K3_2026_G9/Evaluaciones/TrabajosPracticos/ResolucionTP01 | Informe y/o código fuente |
-| README del repositorio | README.md | SCM_ISW_4K3_2026_G9/ | Documento de presentación del repositorio |
+- **IS**: prefijo obligatorio que identifica la asignatura (Ingeniería y Calidad de Software).
+- **[CATEGORIA]**: nemónico que clasifica el tipo de artefacto (PTA, CRON, MB, MC, NT, GUIA, NP, EJR, RP, PLP, EJP, REPA, ENUN, DOC, SRC). Ver Glosario.
+- **[DETALLE]**: código de contexto o alcance (GEN, U\<XX\>, TP\<XX\>, P\<XX\>, \<DDMM\>).
+- **[DESCRIPCION]**: nombre autoexplicativo en PascalCase, sin espacios, guiones, tildes ni caracteres especiales.
+- **[EXT]**: extensión del archivo (.pdf, .docx, .txt, .md, .py, .jpeg, etc.).
 
-**Notas sobre estructuras repetidas:**
-- **Teoria/Unidad01** se desarrolló como ejemplo completo (Material Clase + Notas Clase). **Unidad02, Unidad03 y Unidad04** siguen exactamente la misma estructura y regla de nombrado, reemplazando `U01` por `U02`, `U03` o `U04` respectivamente en el DETALLE.
-- **Evaluaciones/Parciales/Parcial1** se desarrolló como ejemplo completo (Resumen, Ejercicio Práctica, Plantilla, Resolución). **Parcial2** sigue la misma estructura, reemplazando `P01` por `P02`.
-- **Evaluaciones/TrabajosPracticos/ResolucionTP01** se desarrolló como ejemplo. **ResolucionTP02 a ResolucionTP13** siguen la misma estructura y regla de nombrado, reemplazando `TP01` por el número de TP correspondiente (`TP02`...`TP13`).
+**Versionado:** el nombre del IC **no** incluye la versión. Las versiones las administra la herramienta (Git): cada cambio a un IC queda registrado como un commit, y las configuraciones estables se identifican con tags de Línea Base (punto 6).
 
-
-
-## 🔆Glosario🔆
+## 🔆4. Glosario🔆
 
 | **Abreviación** | **Significado / Concepto** | **Descripción y Alcance** |
 | ---   | ---                        | --- |
@@ -115,35 +71,88 @@ IS → Prefijo obligatorio que identifica la asignatura (Ingeniería de Software
 | PTA   | Pautas de Cursado          | Reglamentos, condiciones de regularidad y normativas de cátedra |
 | CRON  | Cronograma                 | Calendario oficial de clases, entregas y exámenes |
 | MB    | Bibliografía               | Libros, papers y material de referencia |
-| MC    | Material de Clase          | Presentaciones y guías teóricas |
-| NT    | Notas Teóricas             | Apuntes y registros de clases teóricas |
-| GUIA  | Guía de Trabajos Prácticos | Documento macro con todos los TPs |
-| NP    | Notas Prácticas            | Apuntes de las clases prácticas |
-| EJR   | Ejercicios Resueltos       | Soluciones de ejercicios prácticos |
+| MC    | Material de Clase          | Presentaciones y material teórico de la cátedra |
+| NT    | Notas Teóricas             | Apuntes tomados en clases teóricas |
+| GUIA  | Guía                       | Documento macro con todos los ejercicios prácticos o todos los TPs |
+| NP    | Notas Prácticas            | Apuntes tomados en clases prácticas |
+| EJR   | Ejercicios Resueltos       | Resoluciones de los TPs no evaluables, hechos en clase |
 | RP    | Resumen para Parcial       | Síntesis de conceptos para parciales |
 | PLP   | Plantilla de Parcial       | Modelos y plantillas de examen |
 | EJP   | Ejercicios de Parcial      | Simulacros y bancos de ejercicios |
 | REPA  | Resolución de Parcial      | Soluciones y pautas de corrección |
 | ENUN  | Enunciado de TP            | Consignas oficiales de cada TP |
-| DOC   | Documentación Técnica      | Informes, planes de gestión y manuales |
-| SRC   | Código Fuente              | Scripts y módulos de programación |
-| BLD   | Build y Automatización     | Scripts de compilación e integración continua |
+| DOC   | Documentación              | Informes, planes de gestión, manuales y demás entregables documentales |
+| SRC   | Código Fuente              | Scripts y módulos de programación entregados en un TP |
 | GEN   | General                    | Alcance global para toda la materia |
-| U[XX] | Unidad Temática            | Identificador de unidad (ej. U01, U02, U03) |
-| TP[XX]| Trabajo Práctico           | Identificador de TP (ej. TP01, TP02, TP03) |
-| P[XX] | Parcial                    | Identificador de parcial (ej. P01, P02) |
-| DDMM  | Fecha                      | Formato de fecha en dia y mes |
+| U[XX] | Unidad Temática            | Identificador de unidad (U01 a U04) |
+| TP[XX]| Trabajo Práctico           | Identificador de TP (TP01 a TP13) |
+| P[XX] | Parcial                    | Identificador de parcial (P01, P02) |
+| DDMM  | Fecha                      | Día y mes de la clase en la que se tomaron las notas (ej. 1408) |
 
-## 🔆Definición de Líneas Base (Baselines) y Flujo de Control🔆
-```
-El criterio que vamos a utilizar para la creación de las líneas base va a ser:
+## 🔆5. Matriz de Ítems de Configuración (IC)🔆
 
-    1. La primer línea base se establece al terminar la configuración inicial del repositorio, correspondiente al Trabajo Práctico número 4. La misma será indicada con una Tag llamada "BL-TP04".
-    2. De ahí en adelante, se establecerán después de finalizar un trabajo práctico, una vez el mismo se encuentre corregido y aprobado por un profesor de la cátedra. Las mismas serán indicadas con Tags del tipo: "BL-TP<numeroTp>".
+### Tipos de ítem
+Se usan los tipos de ítem genéricos de la teoría de SCM, que se distinguen por su ciclo de vida:
 
-Las líneas base se identificarán con una Tag que indicará que dicho commit representa una Configuración estable. Las mismas llevarán el nombre de la línea base, más una pequeña descripción.
+| **Tipo** | **Criterio** |
+| --- | --- |
+| **Producto** | Conocimiento de la materia que perdura más allá de la cursada (material teórico y práctico, bibliografía, apuntes). |
+| **Proyecto** | Vive durante toda la cursada 2026 y la gestiona (pautas, cronograma, plan de SCM, configuración del repositorio). |
+| **Iteración** | Asociado a una entrega o evaluación puntual (un TP o un parcial). |
 
-### Ej: Línea Base Inicial: BL-INIT:
+### Matriz
+La regla de nombrado se expresa con los mismos marcadores que la convención del punto 3. La ubicación física es la ruta completa desde la raíz del repositorio.
 
-Criterio: Congela la estructura física del repositorio, las pautas de cursado, el cronograma oficial y la bibliografía inicial de referencia de la cátedra.
-```
+| **NOMBRE DE IC** | **REGLA DE NOMBRADO** | **UBICACIÓN FÍSICA** | **TIPO DE ÍTEM** |
+| --- | --- | --- | --- |
+| Plan de Gestión de Configuración | README.md | SCM_ISW_4K3_2026_G9/ | Proyecto |
+| Plan de Gestión de Configuración (formato formal) | IS_DOC_GEN_PlanGestionConfiguracion.pdf | SCM_ISW_4K3_2026_G9/ | Proyecto |
+| Archivos ignorados por Git | .gitignore | SCM_ISW_4K3_2026_G9/ | Proyecto |
+| Pautas de Cursado | IS_PTA_GEN_\<Descripcion\>.pdf | SCM_ISW_4K3_2026_G9/InfoGeneral/PautasCursado/ | Proyecto |
+| Cronograma de Clases | IS_CRON_GEN_\<Descripcion\>.txt | SCM_ISW_4K3_2026_G9/InfoGeneral/ | Proyecto |
+| Bibliografía | IS_MB_GEN_\<Descripcion\>.txt | SCM_ISW_4K3_2026_G9/Teoria/ | Producto |
+| Material de Clase Unidad 1 | IS_MC_U01_\<Tema\>.pdf | SCM_ISW_4K3_2026_G9/Teoria/Unidad01/MaterialClase/ | Producto |
+| Notas Teóricas Unidad 1 | IS_NT_\<DDMM\>_Notas\<Autor\>.txt | SCM_ISW_4K3_2026_G9/Teoria/Unidad01/NotasClase/ | Producto |
+| Material de Clase Unidad 2 | IS_MC_U02_\<Tema\>.pdf | SCM_ISW_4K3_2026_G9/Teoria/Unidad02/MaterialClase/ | Producto |
+| Notas Teóricas Unidad 2 | IS_NT_\<DDMM\>_Notas\<Autor\>.txt | SCM_ISW_4K3_2026_G9/Teoria/Unidad02/NotasClase/ | Producto |
+| Material de Clase Unidad 3 | IS_MC_U03_\<Tema\>.pdf | SCM_ISW_4K3_2026_G9/Teoria/Unidad03/MaterialClase/ | Producto |
+| Notas Teóricas Unidad 3 | IS_NT_\<DDMM\>_Notas\<Autor\>.txt | SCM_ISW_4K3_2026_G9/Teoria/Unidad03/NotasClase/ | Producto |
+| Material de Clase Unidad 4 | IS_MC_U04_\<Tema\>.pdf | SCM_ISW_4K3_2026_G9/Teoria/Unidad04/MaterialClase/ | Producto |
+| Notas Teóricas Unidad 4 | IS_NT_\<DDMM\>_Notas\<Autor\>.txt | SCM_ISW_4K3_2026_G9/Teoria/Unidad04/NotasClase/ | Producto |
+| Guía de Ejercicios Prácticos | IS_GUIA_GEN_\<Descripcion\>.pdf | SCM_ISW_4K3_2026_G9/Practica/ | Producto |
+| Notas Prácticas | IS_NP_\<DDMM\>_Notas\<Autor\>.txt | SCM_ISW_4K3_2026_G9/Practica/NotasClase/ | Producto |
+| Resolución de TP no evaluable | IS_EJR_TP\<XX\>_\<Descripcion\>.\<ext\> | SCM_ISW_4K3_2026_G9/Practica/ResolucionEjercicios/ | Iteración |
+| Resumen Parcial 1 | IS_RP_P01_\<Descripcion\>.pdf | SCM_ISW_4K3_2026_G9/Evaluaciones/Parciales/Parcial1/Resumenes/ | Iteración |
+| Plantilla Parcial 1 | IS_PLP_P01_\<Tipo\>.\<ext\> | SCM_ISW_4K3_2026_G9/Evaluaciones/Parciales/Parcial1/Plantillas/ | Iteración |
+| Ejercicio Práctica Parcial 1 | IS_EJP_P01_\<Tema\>.pdf | SCM_ISW_4K3_2026_G9/Evaluaciones/Parciales/Parcial1/EjerciciosPractica/ | Iteración |
+| Resolución Parcial 1 | IS_REPA_P01_\<TemaResolucion\>.pdf | SCM_ISW_4K3_2026_G9/Evaluaciones/Parciales/Parcial1/Resoluciones/ | Iteración |
+| Resumen Parcial 2 | IS_RP_P02_\<Descripcion\>.pdf | SCM_ISW_4K3_2026_G9/Evaluaciones/Parciales/Parcial2/Resumenes/ | Iteración |
+| Plantilla Parcial 2 | IS_PLP_P02_\<Tipo\>.\<ext\> | SCM_ISW_4K3_2026_G9/Evaluaciones/Parciales/Parcial2/Plantillas/ | Iteración |
+| Ejercicio Práctica Parcial 2 | IS_EJP_P02_\<Tema\>.pdf | SCM_ISW_4K3_2026_G9/Evaluaciones/Parciales/Parcial2/EjerciciosPractica/ | Iteración |
+| Resolución Parcial 2 | IS_REPA_P02_\<TemaResolucion\>.pdf | SCM_ISW_4K3_2026_G9/Evaluaciones/Parciales/Parcial2/Resoluciones/ | Iteración |
+| Guía de Trabajos Prácticos | IS_GUIA_GEN_\<Descripcion\>.pdf | SCM_ISW_4K3_2026_G9/Evaluaciones/TrabajosPracticos/ | Producto |
+| Enunciado de TP | IS_ENUN_TP\<XX\>_\<Tema\>.pdf | SCM_ISW_4K3_2026_G9/Evaluaciones/TrabajosPracticos/ | Iteración |
+| Documentación de Resolución de TP | IS_DOC_TP\<XX\>_\<Descripcion\>.\<ext\> | SCM_ISW_4K3_2026_G9/Evaluaciones/TrabajosPracticos/ResolucionTP\<XX\>/ | Iteración |
+| Código Fuente de Resolución de TP | IS_SRC_TP\<XX\>_\<Descripcion\>.\<ext\> | SCM_ISW_4K3_2026_G9/Evaluaciones/TrabajosPracticos/ResolucionTP\<XX\>/ | Iteración |
+
+**Notas:**
+- La ubicación de la resolución de un TP depende de si la Guía de TPs lo marca como evaluable:
+  - **TPs evaluables** (04, 05, 06, 07, 10, 11, 12 y 13): categoría `DOC`/`SRC` en `Evaluaciones/TrabajosPracticos/ResolucionTP<XX>/`, donde `<XX>` coincide con el número de la carpeta (ej. `IS_DOC_TP07_DinamicaScrum.jpeg` va en `ResolucionTP07/`).
+  - **TPs no evaluables** (01, 02, 03, 08 y 09): categoría `EJR` en `Practica/ResolucionEjercicios/`.
+- Los archivos `.gitkeep` no son ICs: solo sirven para que Git conserve las carpetas vacías de la estructura.
+
+## 🔆6. Definición de Líneas Base (Baselines) y Flujo de Control🔆
+Una Línea Base es una configuración de ICs formalmente aprobada, que sirve de base para el trabajo siguiente y solo se modifica mediante el control de cambios.
+
+**Criterios de creación:**
+1. La primera línea base se establece al terminar la configuración inicial del repositorio, correspondiente al Trabajo Práctico número 4. Se identifica con el tag `BL-TP04`, y congela la estructura física del repositorio, las pautas de cursado, el cronograma oficial y la bibliografía inicial de referencia de la cátedra.
+2. De ahí en adelante, se establece una línea base al finalizar cada trabajo práctico, una vez que fue corregido y aprobado por un profesor de la cátedra. Se identifica con un tag `BL-TP<XX>`.
+
+**Identificación:** cada línea base es un tag anotado de Git sobre el commit que representa la configuración estable, con el nombre de la línea base y una breve descripción de su alcance.
+
+**Líneas base establecidas:**
+
+| **Tag** | **Descripción** |
+| --- | --- |
+| BL-TP04 | Línea base inicial: configuración del repositorio (TP04) |
+| BL-TP07 | Resolución del TP07: dinámica Scrum para la elaboración de maquetas |
