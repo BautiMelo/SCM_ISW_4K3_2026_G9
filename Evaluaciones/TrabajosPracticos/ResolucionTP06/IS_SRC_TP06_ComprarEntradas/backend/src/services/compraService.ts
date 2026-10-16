@@ -29,6 +29,16 @@ const formatearFecha = (fecha: Date): string => fecha.toLocaleDateString('es-AR'
   year: 'numeric',
 });
 
+// Mismo día del mes siguiente; si ese mes es más corto (ej. 31/01 -> febrero), su último día
+export const calcularFechaLimiteCompra = (fechaActual: Date): Date => {
+  const ultimoDiaMesSiguiente = new Date(fechaActual.getFullYear(), fechaActual.getMonth() + 2, 0).getDate();
+  return new Date(
+    fechaActual.getFullYear(),
+    fechaActual.getMonth() + 1,
+    Math.min(fechaActual.getDate(), ultimoDiaMesSiguiente),
+  );
+};
+
 const esEnteroEntre = (valor: unknown, minimo: number, maximo: number): boolean =>
   Number.isInteger(valor) && (valor as number) >= minimo && (valor as number) <= maximo;
 
@@ -56,6 +66,13 @@ export const validarFechaVisita = (fechaTexto: string, fechaActual: Date): Date 
   const hoy = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), fechaActual.getDate());
   if (fechaVisita < hoy) {
     throw new CompraError('La fecha de visita debe ser hoy o una fecha futura');
+  }
+
+  const fechaLimite = calcularFechaLimiteCompra(fechaActual);
+  if (fechaVisita > fechaLimite) {
+    throw new CompraError(
+      `Solo se pueden comprar entradas con hasta un mes de anticipación (hasta el ${formatearFecha(fechaLimite)})`,
+    );
   }
 
   return fechaVisita;
