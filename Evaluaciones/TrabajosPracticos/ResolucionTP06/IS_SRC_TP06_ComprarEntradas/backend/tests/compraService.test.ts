@@ -1,5 +1,5 @@
 import {
-  calcularMontoTotal, comprarEntradas, confirmarPago, validarDiaApertura,
+  calcularMontoTotal, comprarEntradas, confirmarPago, validarDiaApertura, validarFechaVisita,
 } from '../src/services/compraService';
 import { crearRepositorioComprasEnMemoria } from '../src/data/repositorioCompras';
 import { SolicitudCompra } from '../src/models/compra';
@@ -102,6 +102,29 @@ describe('comprarEntradas', () => {
 
       await expect(comprarEntradas(solicitud, crearDependencias()))
         .rejects.toThrow('Debe indicar una fecha de visita válida (AAAA-MM-DD)');
+    });
+
+    test('comprar para el mismo día del mes siguiente (valor límite) es válido', async () => {
+      const solicitud = crearSolicitudValida({ fechaVisita: '2026-11-13' }); // viernes
+
+      const resultado = await comprarEntradas(solicitud, crearDependencias());
+
+      expect(resultado.fechaVisita).toBe('2026-11-13');
+    });
+
+    test('comprar con más de un mes de anticipación falla', async () => {
+      const solicitud = crearSolicitudValida({ fechaVisita: '2026-11-14' }); // sábado
+
+      await expect(comprarEntradas(solicitud, crearDependencias()))
+        .rejects.toThrow('Solo se pueden comprar entradas con hasta un mes de anticipación (hasta el 13/11/2026)');
+    });
+
+    test('desde el 31 de enero el límite es el último día de febrero', () => {
+      const treintaYUnoDeEnero = new Date(2027, 0, 31, 10, 0);
+
+      expect(() => validarFechaVisita('2027-02-28', treintaYUnoDeEnero)).not.toThrow();
+      expect(() => validarFechaVisita('2027-03-01', treintaYUnoDeEnero))
+        .toThrow('Solo se pueden comprar entradas con hasta un mes de anticipación (hasta el 28/02/2027)');
     });
   });
 
