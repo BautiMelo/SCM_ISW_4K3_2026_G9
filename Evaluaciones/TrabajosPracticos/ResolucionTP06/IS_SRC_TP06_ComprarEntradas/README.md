@@ -1,7 +1,7 @@
 # EcoHarmony Park — US "Comprar entradas" (TP06 TDD)
 
 Implementación de la User Story **Comprar entradas** con TDD (Red → Green → Refactor).
-Decisiones de diseño y bitácora de ciclos: [`../IS_DOC_TP06_DecisionesDeDiseno_v0.1.md`](../IS_DOC_TP06_DecisionesDeDiseno_v0.1.md).
+Decisiones de diseño y bitácora de ciclos: [`../IS_DOC_TP06_DecisionesDeDiseno.md`](../IS_DOC_TP06_DecisionesDeDiseno.md).
 
 ```
 IS_SRC_TP06_ComprarEntradas/
