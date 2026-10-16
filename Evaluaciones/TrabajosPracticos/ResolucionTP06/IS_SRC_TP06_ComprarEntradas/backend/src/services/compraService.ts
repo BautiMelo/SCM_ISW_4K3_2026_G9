@@ -14,6 +14,8 @@ const CANTIDAD_MAXIMA_ENTRADAS = 10;
 const EDAD_MAXIMA = 120;
 const PRECIOS_PASE: Record<string, number> = { REGULAR: 10000, VIP: 20000 };
 const EDAD_MAXIMA_SIN_CARGO = 3;
+// El parque abre de 8:30 a 19:00; para el mismo día se vende hasta 1 hora y media antes del cierre
+const HORA_LIMITE_COMPRA_MISMO_DIA = { horas: 17, minutos: 30 };
 const EDAD_MAXIMA_MENOR_CON_DESCUENTO = 15;
 const EDAD_MINIMA_MAYOR_CON_DESCUENTO = 60;
 
@@ -66,6 +68,13 @@ export const validarFechaVisita = (fechaTexto: string, fechaActual: Date): Date 
   const hoy = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), fechaActual.getDate());
   if (fechaVisita < hoy) {
     throw new CompraError('La fecha de visita debe ser hoy o una fecha futura');
+  }
+
+  const esHoy = fechaVisita.getTime() === hoy.getTime();
+  const minutosActuales = fechaActual.getHours() * 60 + fechaActual.getMinutes();
+  const minutosLimite = HORA_LIMITE_COMPRA_MISMO_DIA.horas * 60 + HORA_LIMITE_COMPRA_MISMO_DIA.minutos;
+  if (esHoy && minutosActuales > minutosLimite) {
+    throw new CompraError('Las entradas para hoy se pueden comprar hasta las 17:30 (el parque cierra a las 19:00)');
   }
 
   const fechaLimite = calcularFechaLimiteCompra(fechaActual);
