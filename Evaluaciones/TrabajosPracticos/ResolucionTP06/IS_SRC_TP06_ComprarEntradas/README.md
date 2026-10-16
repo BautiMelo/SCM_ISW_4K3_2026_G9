@@ -62,7 +62,8 @@ Usuario de prueba: `visitante@ecoharmony.test` / `visitante123`.
 | Método | Ruta | Auth | Descripción |
 |---|---|---|---|
 | POST | `/auth/login` | — | `{ email, password }` → `{ token, usuario }` |
-| POST | `/compras` | Bearer | `{ fechaVisita: "AAAA-MM-DD", cantidadEntradas, visitantes: [{ edad, tipoPase: "VIP"\|"REGULAR", esJubilado? }], formaPago: "EFECTIVO"\|"TARJETA" }` → `201` con mensaje, cantidad, fecha, monto, código de reserva y `urlPago` (si es tarjeta) |
+| GET | `/compras/fechas-disponibles` | — | Fechas que se pueden elegir en el calendario (`AAAA-MM-DD`) |
+| POST | `/compras` | Bearer | `{ fechaVisita: "AAAA-MM-DD", cantidadEntradas, visitantes: [{ edad, tipoPase: "VIP"\|"REGULAR" }], formaPago: "EFECTIVO"\|"TARJETA" }` → `201` con mensaje, cantidad, fecha, monto, código de reserva y `urlPago` (si es tarjeta) |
 | POST | `/compras/:codigoReserva/confirmar-pago` | Bearer | `{ idPago }` → confirma el pago con Mercado Pago y envía el mail |
 
 Errores: `400 { mensaje }` si no se cumple un criterio de aceptación, `401` sin sesión, `500` ante fallas inesperadas.
