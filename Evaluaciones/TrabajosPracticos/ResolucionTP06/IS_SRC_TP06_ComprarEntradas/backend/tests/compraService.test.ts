@@ -1,5 +1,5 @@
 import {
-  calcularMontoTotal, comprarEntradas, confirmarPago, validarDiaApertura, validarFechaVisita,
+  calcularMontoTotal, comprarEntradas, confirmarPago, obtenerFechasDisponibles, validarDiaApertura, validarFechaVisita,
 } from '../src/services/compraService';
 import { crearRepositorioComprasEnMemoria } from '../src/data/repositorioCompras';
 import { EstadoCompra, SolicitudCompra } from '../src/models/compra';
@@ -532,5 +532,36 @@ describe('calcularMontoTotal', () => {
     ], 30000],
   ])('%s', (_descripcion, visitantes, montoEsperado) => {
     expect(calcularMontoTotal(visitantes)).toBe(montoEsperado);
+  });
+});
+
+describe('obtenerFechasDisponibles (días habilitados en el calendario)', () => {
+  test('va desde hoy hasta el mismo día del mes siguiente', () => {
+    const fechas = obtenerFechasDisponibles(FECHA_ACTUAL); // martes 13/10/2026 10:00
+
+    expect(fechas[0]).toBe('2026-10-13');
+    expect(fechas[fechas.length - 1]).toBe('2026-11-13');
+  });
+
+  test('no incluye los lunes', () => {
+    const fechas = obtenerFechasDisponibles(FECHA_ACTUAL);
+
+    expect(fechas).not.toContain('2026-10-19');
+    expect(fechas).not.toContain('2026-11-09');
+    expect(fechas).toHaveLength(28); // 32 días del 13/10 al 13/11 menos 4 lunes
+  });
+
+  test('después de las 17:30 no incluye el día de hoy', () => {
+    const fechas = obtenerFechasDisponibles(new Date(2026, 9, 13, 17, 31));
+
+    expect(fechas[0]).toBe('2026-10-14');
+  });
+
+  test('no incluye el 25 de diciembre ni el 1 de enero', () => {
+    const fechas = obtenerFechasDisponibles(new Date(2026, 11, 20, 10, 0));
+
+    expect(fechas).toContain('2026-12-24');
+    expect(fechas).not.toContain('2026-12-25');
+    expect(fechas).not.toContain('2027-01-01');
   });
 });

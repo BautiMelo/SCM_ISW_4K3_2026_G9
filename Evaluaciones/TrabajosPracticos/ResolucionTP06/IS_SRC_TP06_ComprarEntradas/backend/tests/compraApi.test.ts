@@ -29,6 +29,16 @@ const COMPRA_VALIDA = {
 };
 
 describe('API /compras', () => {
+  test('las fechas disponibles para el calendario se consultan con GET /compras/fechas-disponibles', async () => {
+    const { app } = crearAppDePrueba(); // lunes 12/10/2026: el parque está cerrado hoy
+
+    const respuesta = await request(app).get('/compras/fechas-disponibles');
+
+    expect(respuesta.status).toBe(200);
+    expect(respuesta.body.fechas[0]).toBe('2026-10-13');
+    expect(respuesta.body.fechas).not.toContain('2026-10-12');
+  });
+
   test('comprar sin haber iniciado sesión responde 401', async () => {
     const { app } = crearAppDePrueba();
 
