@@ -23,8 +23,8 @@ const crearSolicitudValida = (cambios: Partial<SolicitudCompra> = {}): Solicitud
 const URL_PAGO_MP = 'https://www.mercadopago.com.ar/checkout/v1/redirect?pref_id=123';
 
 // Dobles de prueba: reemplazan al mail y a Mercado Pago reales para verificar qué se les pidió sin llamarlos
-const crearDependencias = () => ({
-  fechaActual: FECHA_ACTUAL,
+const crearDependencias = (fechaActual: Date = FECHA_ACTUAL) => ({
+  fechaActual,
   enviadorMail: { enviar: jest.fn().mockResolvedValue(undefined) },
   pasarelaPago: {
     crearPago: jest.fn().mockResolvedValue(URL_PAGO_MP),
@@ -102,6 +102,29 @@ describe('comprarEntradas', () => {
 
       await expect(comprarEntradas(solicitud, crearDependencias()))
         .rejects.toThrow('Debe indicar una fecha de visita válida (AAAA-MM-DD)');
+    });
+
+    test('comprar para hoy a las 17:30 (valor límite) es válido', async () => {
+      const solicitud = crearSolicitudValida({ fechaVisita: '2026-10-13' });
+
+      const resultado = await comprarEntradas(solicitud, crearDependencias(new Date(2026, 9, 13, 17, 30)));
+
+      expect(resultado.fechaVisita).toBe('2026-10-13');
+    });
+
+    test('comprar para hoy después de las 17:30 falla', async () => {
+      const solicitud = crearSolicitudValida({ fechaVisita: '2026-10-13' });
+
+      await expect(comprarEntradas(solicitud, crearDependencias(new Date(2026, 9, 13, 17, 31))))
+        .rejects.toThrow('Las entradas para hoy se pueden comprar hasta las 17:30 (el parque cierra a las 19:00)');
+    });
+
+    test('después de las 17:30 se puede comprar para mañana', async () => {
+      const solicitud = crearSolicitudValida({ fechaVisita: '2026-10-14' });
+
+      const resultado = await comprarEntradas(solicitud, crearDependencias(new Date(2026, 9, 13, 18, 0)));
+
+      expect(resultado.fechaVisita).toBe('2026-10-14');
     });
 
     test('comprar para el mismo día del mes siguiente (valor límite) es válido', async () => {
