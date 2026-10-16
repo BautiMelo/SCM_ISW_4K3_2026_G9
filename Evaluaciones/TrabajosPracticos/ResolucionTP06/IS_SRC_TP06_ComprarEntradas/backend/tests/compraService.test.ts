@@ -2,7 +2,7 @@ import {
   calcularMontoTotal, comprarEntradas, confirmarPago, validarDiaApertura, validarFechaVisita,
 } from '../src/services/compraService';
 import { crearRepositorioComprasEnMemoria } from '../src/data/repositorioCompras';
-import { SolicitudCompra } from '../src/models/compra';
+import { EstadoCompra, SolicitudCompra } from '../src/models/compra';
 
 // Fecha y hora actual fijas para que los tests no dependan de cuándo se corren: martes 13/10/2026 10:00
 const FECHA_ACTUAL = new Date(2026, 9, 13, 10, 0);
@@ -215,6 +215,95 @@ describe('comprarEntradas', () => {
 
       await expect(comprarEntradas(solicitud, crearDependencias()))
         .rejects.toThrow('La cantidad de entradas debe ser un número entero entre 1 y 10');
+    });
+  });
+
+  describe('máximo de 10 entradas por usuario para una misma fecha', () => {
+    const USUARIO_ANA = { id: 1, nombre: 'Ana', email: 'ana@mail.com' };
+    const crearVisitantes = (cantidad: number) =>
+      Array.from({ length: cantidad }, () => ({ edad: 25, tipoPase: 'REGULAR' }));
+
+    // Deja registrada una compra anterior del usuario, como si la hubiera hecho en otra transacción
+    const registrarCompraPrevia = async (
+      dependencias: ReturnType<typeof crearDependencias>,
+      { cantidad, estado, usuario = USUARIO_ANA, fechaVisita = '2026-10-14' }:
+        { cantidad: number; estado: EstadoCompra; usuario?: typeof USUARIO_ANA; fechaVisita?: string },
+    ) => {
+      await dependencias.repositorioCompras.guardar({
+        codigoReserva: `PREVIA${cantidad}${estado.charAt(0)}`,
+        usuario,
+        fechaVisita,
+        cantidadEntradas: cantidad,
+        visitantes: crearVisitantes(cantidad),
+        formaPago: estado === 'RESERVADA' ? 'EFECTIVO' : 'TARJETA',
+        montoTotal: cantidad * 10000,
+        estado,
+      });
+    };
+
+    const solicitarEntradas = (cantidad: number) =>
+      crearSolicitudValida({ cantidadEntradas: cantidad, visitantes: crearVisitantes(cantidad) });
+
+    test('con 8 entradas ya reservadas para esa fecha, comprar 3 más falla', async () => {
+      const dependencias = crearDependencias();
+      await registrarCompraPrevia(dependencias, { cantidad: 8, estado: 'RESERVADA' });
+
+      await expect(comprarEntradas(solicitarEntradas(3), dependencias))
+        .rejects.toThrow('Solo se pueden comprar 10 entradas por fecha. Ya tenés 8 para el 14/10/2026: podés comprar hasta 2 más');
+    });
+
+    test('con 8 entradas ya reservadas para esa fecha, comprar 2 más (valor límite) es válido', async () => {
+      const dependencias = crearDependencias();
+      await registrarCompraPrevia(dependencias, { cantidad: 8, estado: 'RESERVADA' });
+
+      const resultado = await comprarEntradas(solicitarEntradas(2), dependencias);
+
+      expect(resultado.cantidadEntradas).toBe(2);
+    });
+
+    test('las compras con tarjeta ya pagadas también suman', async () => {
+      const dependencias = crearDependencias();
+      await registrarCompraPrevia(dependencias, { cantidad: 6, estado: 'PAGADA' });
+
+      await expect(comprarEntradas(solicitarEntradas(5), dependencias))
+        .rejects.toThrow('Ya tenés 6 para el 14/10/2026: podés comprar hasta 4 más');
+    });
+
+    test('se suman varias compras anteriores', async () => {
+      const dependencias = crearDependencias();
+      await registrarCompraPrevia(dependencias, { cantidad: 4, estado: 'RESERVADA' });
+      await registrarCompraPrevia(dependencias, { cantidad: 6, estado: 'PAGADA' });
+
+      await expect(comprarEntradas(solicitarEntradas(1), dependencias))
+        .rejects.toThrow('Ya tenés 10 para el 14/10/2026: podés comprar hasta 0 más');
+    });
+
+    test('las compras con tarjeta pendientes de pago no suman', async () => {
+      const dependencias = crearDependencias();
+      await registrarCompraPrevia(dependencias, { cantidad: 8, estado: 'PENDIENTE_PAGO' });
+
+      const resultado = await comprarEntradas(solicitarEntradas(5), dependencias);
+
+      expect(resultado.cantidadEntradas).toBe(5);
+    });
+
+    test('las compras para otra fecha no suman', async () => {
+      const dependencias = crearDependencias();
+      await registrarCompraPrevia(dependencias, { cantidad: 10, estado: 'RESERVADA', fechaVisita: '2026-10-15' });
+
+      const resultado = await comprarEntradas(solicitarEntradas(10), dependencias);
+
+      expect(resultado.cantidadEntradas).toBe(10);
+    });
+
+    test('las compras de otro usuario no suman', async () => {
+      const dependencias = crearDependencias();
+      const otroUsuario = { id: 2, nombre: 'Juan', email: 'juan@mail.com' };
+      await registrarCompraPrevia(dependencias, { cantidad: 10, estado: 'RESERVADA', usuario: otroUsuario });
+
+      const resultado = await comprarEntradas(solicitarEntradas(10), dependencias);
+
+      expect(resultado.cantidadEntradas).toBe(10);
     });
   });
 
