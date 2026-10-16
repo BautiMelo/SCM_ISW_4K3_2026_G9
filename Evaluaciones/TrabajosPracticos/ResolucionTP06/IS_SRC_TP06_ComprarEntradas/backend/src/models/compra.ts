@@ -8,7 +8,6 @@ export interface Usuario {
 export interface Visitante {
   edad?: number;
   tipoPase?: string;
-  esJubilado?: boolean;
 }
 
 export interface SolicitudCompra {
