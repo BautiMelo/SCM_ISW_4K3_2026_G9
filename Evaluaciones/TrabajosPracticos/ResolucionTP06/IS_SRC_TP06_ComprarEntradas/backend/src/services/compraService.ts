@@ -59,11 +59,23 @@ export const validarFormaPago = (formaPago?: string): void => {
 
 const inicioDelDia = (fecha: Date): Date => new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate());
 
-const validarHorarioCompraMismoDia = (fechaVisita: Date, fechaActual: Date): void => {
+// AAAA-MM-DD en hora local
+const aTextoFecha = (fecha: Date): string =>
+  `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`;
+
+const esDiaDeApertura = (fecha: Date): boolean =>
+  !DIAS_SEMANA_CERRADOS.includes(fecha.getDay()) && !FERIADOS_CERRADOS.includes(aTextoFecha(fecha).slice(5));
+
+// true si fechaVisita es hoy y ya pasó el horario límite de venta para el mismo día
+const cerroVentaParaHoy = (fechaVisita: Date, fechaActual: Date): boolean => {
   const esHoy = fechaVisita.getTime() === inicioDelDia(fechaActual).getTime();
   const minutosActuales = fechaActual.getHours() * 60 + fechaActual.getMinutes();
   const minutosLimite = HORA_LIMITE_COMPRA_MISMO_DIA.horas * 60 + HORA_LIMITE_COMPRA_MISMO_DIA.minutos;
-  if (esHoy && minutosActuales > minutosLimite) {
+  return esHoy && minutosActuales > minutosLimite;
+};
+
+const validarHorarioCompraMismoDia = (fechaVisita: Date, fechaActual: Date): void => {
+  if (cerroVentaParaHoy(fechaVisita, fechaActual)) {
     throw new CompraError('Las entradas para hoy se pueden comprar hasta las 17:30 (el parque cierra a las 19:00)');
   }
 };
@@ -97,12 +109,23 @@ export const validarFechaVisita = (fechaTexto: string, fechaActual: Date): Date 
 };
 
 export const validarDiaApertura = (fechaVisita: Date): void => {
-  const mesDia = `${String(fechaVisita.getMonth() + 1).padStart(2, '0')}-${String(fechaVisita.getDate()).padStart(2, '0')}`;
-  if (DIAS_SEMANA_CERRADOS.includes(fechaVisita.getDay()) || FERIADOS_CERRADOS.includes(mesDia)) {
+  if (!esDiaDeApertura(fechaVisita)) {
     throw new CompraError(
       'El parque está cerrado ese día. Abre todos los días excepto los lunes, el 25 de diciembre y el 1 de enero',
     );
   }
+};
+
+// Días que el calendario muestra habilitados: desde hoy hasta dentro de un mes, con el parque abierto
+export const obtenerFechasDisponibles = (fechaActual: Date): string[] => {
+  const fechas: string[] = [];
+  const fechaLimite = calcularFechaLimiteCompra(fechaActual);
+  for (let fecha = inicioDelDia(fechaActual); fecha <= fechaLimite; fecha.setDate(fecha.getDate() + 1)) {
+    if (esDiaDeApertura(fecha) && !cerroVentaParaHoy(fecha, fechaActual)) {
+      fechas.push(aTextoFecha(fecha));
+    }
+  }
+  return fechas;
 };
 
 export const validarCantidadEntradas = (cantidadEntradas: number): void => {

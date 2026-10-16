@@ -12,6 +12,7 @@ export const crearCompraRoute = (
   const autenticar = crearMiddlewareAutenticar(jwtSecret, usuarios);
   const compraController = crearCompraController(crearDependencias);
 
+  router.get('/fechas-disponibles', compraController.fechasDisponibles);
   router.post('/', autenticar, compraController.comprar);
   router.post('/:codigoReserva/confirmar-pago', autenticar, compraController.confirmarPago);
 
