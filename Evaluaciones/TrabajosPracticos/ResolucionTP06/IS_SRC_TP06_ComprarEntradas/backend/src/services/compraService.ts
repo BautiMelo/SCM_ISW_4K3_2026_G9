@@ -56,6 +56,27 @@ export const validarFormaPago = (formaPago?: string): void => {
   }
 };
 
+const inicioDelDia = (fecha: Date): Date => new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate());
+
+const validarHorarioCompraMismoDia = (fechaVisita: Date, fechaActual: Date): void => {
+  const esHoy = fechaVisita.getTime() === inicioDelDia(fechaActual).getTime();
+  const minutosActuales = fechaActual.getHours() * 60 + fechaActual.getMinutes();
+  const minutosLimite = HORA_LIMITE_COMPRA_MISMO_DIA.horas * 60 + HORA_LIMITE_COMPRA_MISMO_DIA.minutos;
+  if (esHoy && minutosActuales > minutosLimite) {
+    throw new CompraError('Las entradas para hoy se pueden comprar hasta las 17:30 (el parque cierra a las 19:00)');
+  }
+};
+
+const validarAnticipacionMaxima = (fechaVisita: Date, fechaActual: Date): void => {
+  const fechaLimite = calcularFechaLimiteCompra(fechaActual);
+  if (fechaVisita > fechaLimite) {
+    throw new CompraError(
+      `Solo se pueden comprar entradas con hasta un mes de anticipación (hasta el ${formatearFecha(fechaLimite)})`,
+    );
+  }
+};
+
+// Valida que la fecha exista y esté dentro de la ventana de venta: desde hoy (hasta las 17:30) hasta dentro de un mes
 export const validarFechaVisita = (fechaTexto: string, fechaActual: Date): Date => {
   const fechaVisita = parsearFecha(fechaTexto);
   // Si Date "corrigió" la fecha (ej. 31/02 -> 03/03), la fecha no existe
@@ -65,24 +86,11 @@ export const validarFechaVisita = (fechaTexto: string, fechaActual: Date): Date 
     throw new CompraError('Debe indicar una fecha de visita válida (AAAA-MM-DD)');
   }
 
-  const hoy = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), fechaActual.getDate());
-  if (fechaVisita < hoy) {
+  if (fechaVisita < inicioDelDia(fechaActual)) {
     throw new CompraError('La fecha de visita debe ser hoy o una fecha futura');
   }
-
-  const esHoy = fechaVisita.getTime() === hoy.getTime();
-  const minutosActuales = fechaActual.getHours() * 60 + fechaActual.getMinutes();
-  const minutosLimite = HORA_LIMITE_COMPRA_MISMO_DIA.horas * 60 + HORA_LIMITE_COMPRA_MISMO_DIA.minutos;
-  if (esHoy && minutosActuales > minutosLimite) {
-    throw new CompraError('Las entradas para hoy se pueden comprar hasta las 17:30 (el parque cierra a las 19:00)');
-  }
-
-  const fechaLimite = calcularFechaLimiteCompra(fechaActual);
-  if (fechaVisita > fechaLimite) {
-    throw new CompraError(
-      `Solo se pueden comprar entradas con hasta un mes de anticipación (hasta el ${formatearFecha(fechaLimite)})`,
-    );
-  }
+  validarHorarioCompraMismoDia(fechaVisita, fechaActual);
+  validarAnticipacionMaxima(fechaVisita, fechaActual);
 
   return fechaVisita;
 };
