@@ -1,1 +1,9 @@
 .DS_Store
+
+# Dependencias y reportes de Node
+node_modules/
+dist/
+coverage/
+
+# Secretos: nunca se suben. Usar .env.example como plantilla.
+.env
