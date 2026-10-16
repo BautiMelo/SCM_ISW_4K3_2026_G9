@@ -12,8 +12,10 @@ const DIAS_SEMANA_CERRADOS = [1];
 const FERIADOS_CERRADOS = ['12-25', '01-01'];
 const CANTIDAD_MAXIMA_ENTRADAS = 10;
 const EDAD_MAXIMA = 120;
-const PRECIOS_PASE: Record<string, number> = { REGULAR: 6000, VIP: 10000 };
-const EDAD_MINIMA_SIN_DESCUENTO = 12;
+const PRECIOS_PASE: Record<string, number> = { REGULAR: 10000, VIP: 20000 };
+const EDAD_MAXIMA_SIN_CARGO = 3;
+const EDAD_MAXIMA_MENOR_CON_DESCUENTO = 15;
+const EDAD_MINIMA_MAYOR_CON_DESCUENTO = 60;
 
 // Convierte 'AAAA-MM-DD' a Date en hora local (new Date('AAAA-MM-DD') la tomaría en UTC y podría correrse un día)
 const parsearFecha = (fecha: string): Date => {
@@ -89,13 +91,20 @@ export const validarVisitantes = (visitantes: Visitante[], cantidadEntradas: num
   }
 };
 
-// Menores de 12 años y jubilados pagan la mitad del precio del pase
+// Hasta 3 años no pagan; hasta 15 años y desde 60 años pagan la mitad del precio del pase
+const calcularPrecioEntrada = (edad: number, tipoPase: string): number => {
+  const precioPase = PRECIOS_PASE[tipoPase];
+  if (edad <= EDAD_MAXIMA_SIN_CARGO) {
+    return 0;
+  }
+  if (edad <= EDAD_MAXIMA_MENOR_CON_DESCUENTO || edad >= EDAD_MINIMA_MAYOR_CON_DESCUENTO) {
+    return precioPase / 2;
+  }
+  return precioPase;
+};
+
 export const calcularMontoTotal = (visitantes: Visitante[]): number =>
-  visitantes.reduce((total, visitante) => {
-    const precioPase = PRECIOS_PASE[visitante.tipoPase!];
-    const tieneDescuento = visitante.esJubilado || visitante.edad! < EDAD_MINIMA_SIN_DESCUENTO;
-    return total + (tieneDescuento ? precioPase / 2 : precioPase);
-  }, 0);
+  visitantes.reduce((total, visitante) => total + calcularPrecioEntrada(visitante.edad!, visitante.tipoPase!), 0);
 
 const describirEntradas = (compra: Compra): string =>
   `${compra.cantidadEntradas} entradas para el ${formatearFecha(parsearFecha(compra.fechaVisita))}`;
