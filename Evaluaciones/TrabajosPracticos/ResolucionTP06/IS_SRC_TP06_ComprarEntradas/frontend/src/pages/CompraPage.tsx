@@ -1,35 +1,32 @@
-import { FormEvent, useState } from 'react';
-import { comprarEntradas, ResultadoCompra, VisitanteForm } from '../api';
+import { FormEvent, useEffect, useState } from 'react';
+import { comprarEntradas, obtenerFechasDisponibles, ResultadoCompra, VisitanteForm } from '../api';
+import { Calendario } from '../components/Calendario';
 
 interface CompraPageProps {
   onCompraRealizada: (resultado: ResultadoCompra) => void;
 }
 
-const VISITANTE_INICIAL: VisitanteForm = { edad: '', tipoPase: 'REGULAR', esJubilado: false };
-// Mismas reglas que valida la API: acá solo sirven para avisar apenas se carga el dato
+const VISITANTE_INICIAL: VisitanteForm = { edad: '', tipoPase: 'REGULAR' };
+// Misma regla que valida la API: acá solo sirve para avisar apenas se carga el dato
 const CANTIDAD_MAXIMA_ENTRADAS = 10;
-const DIAS_CERRADOS = [2, 4]; // getDay(): 2 = martes, 4 = jueves
 
-const esDiaCerrado = (fecha: string): boolean => {
+const formatearFecha = (fecha: string): string => {
   const [anio, mes, dia] = fecha.split('-').map(Number);
-  return DIAS_CERRADOS.includes(new Date(anio, mes - 1, dia).getDay());
-};
-
-// Fecha local en formato AAAA-MM-DD (toISOString usaría UTC y de noche daría el día siguiente)
-const hoyComoTexto = (): string => {
-  const hoy = new Date();
-  const mes = String(hoy.getMonth() + 1).padStart(2, '0');
-  const dia = String(hoy.getDate()).padStart(2, '0');
-  return `${hoy.getFullYear()}-${mes}-${dia}`;
+  return new Date(anio, mes - 1, dia).toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
 };
 
 export const CompraPage = ({ onCompraRealizada }: CompraPageProps) => {
+  const [fechasDisponibles, setFechasDisponibles] = useState<string[] | null>(null);
   const [fechaVisita, setFechaVisita] = useState('');
   const [cantidadEntradas, setCantidadEntradas] = useState(1);
   const [visitantes, setVisitantes] = useState<VisitanteForm[]>([{ ...VISITANTE_INICIAL }]);
   const [formaPago, setFormaPago] = useState<string>();
   const [error, setError] = useState('');
   const [enviando, setEnviando] = useState(false);
+
+  useEffect(() => {
+    obtenerFechasDisponibles().then(setFechasDisponibles).catch((e: Error) => setError(e.message));
+  }, []);
 
   // La lista de visitantes acompaña a la cantidad de entradas (una fila por entrada)
   const cambiarCantidad = (valor: string) => {
@@ -61,9 +58,6 @@ export const CompraPage = ({ onCompraRealizada }: CompraPageProps) => {
     setEnviando(false);
   };
 
-  const avisoFecha = fechaVisita && esDiaCerrado(fechaVisita)
-    ? 'El parque está cerrado los martes y jueves. Elegí otro día.'
-    : '';
   const avisoCantidad = cantidadEntradas > CANTIDAD_MAXIMA_ENTRADAS
     ? `No se pueden comprar más de ${CANTIDAD_MAXIMA_ENTRADAS} entradas.`
     : '';
@@ -72,33 +66,33 @@ export const CompraPage = ({ onCompraRealizada }: CompraPageProps) => {
   return (
     <form onSubmit={confirmarCompra} className="formulario" noValidate>
       <h2>Comprar entradas</h2>
-      <p className="ayuda">El parque abre todos los días excepto martes y jueves.</p>
+      <p className="ayuda">
+        Abierto de 8:30 a 19:00, todos los días excepto los lunes, el 25/12 y el 1/1.
+        Podés comprar con hasta un mes de anticipación.
+      </p>
 
-      <div className="fila">
-        <label>
-          Fecha de visita
-          <input
-            type="date"
-            min={hoyComoTexto()}
-            value={fechaVisita}
-            aria-invalid={Boolean(avisoFecha)}
-            onChange={(e) => setFechaVisita(e.target.value)}
-          />
-          {avisoFecha && <span className="aviso" role="alert">⚠ {avisoFecha}</span>}
-        </label>
-        <label>
-          Cantidad de entradas (máx. 10)
-          <input
-            type="number"
-            min={1}
-            max={CANTIDAD_MAXIMA_ENTRADAS}
-            value={cantidadEntradas}
-            aria-invalid={Boolean(avisoCantidad)}
-            onChange={(e) => cambiarCantidad(e.target.value)}
-          />
-          {avisoCantidad && <span className="aviso" role="alert">⚠ {avisoCantidad}</span>}
-        </label>
-      </div>
+      <fieldset>
+        <legend>Fecha de visita</legend>
+        {fechasDisponibles
+          ? <Calendario fechasDisponibles={fechasDisponibles} fechaSeleccionada={fechaVisita} onSeleccionar={setFechaVisita} />
+          : <p className="ayuda">Cargando fechas disponibles…</p>}
+        <p className="fecha-elegida">
+          {fechaVisita ? <>Fecha elegida: <strong>{formatearFecha(fechaVisita)}</strong></> : 'Elegí un día en el calendario.'}
+        </p>
+      </fieldset>
+
+      <label>
+        Cantidad de entradas (máx. {CANTIDAD_MAXIMA_ENTRADAS} por fecha)
+        <input
+          type="number"
+          min={1}
+          max={CANTIDAD_MAXIMA_ENTRADAS}
+          value={cantidadEntradas}
+          aria-invalid={Boolean(avisoCantidad)}
+          onChange={(e) => cambiarCantidad(e.target.value)}
+        />
+        {avisoCantidad && <span className="aviso" role="alert">⚠ {avisoCantidad}</span>}
+      </label>
 
       <fieldset>
         <legend>Visitantes</legend>
@@ -120,21 +114,13 @@ export const CompraPage = ({ onCompraRealizada }: CompraPageProps) => {
                 value={visitante.tipoPase}
                 onChange={(e) => cambiarVisitante(indice, { tipoPase: e.target.value as VisitanteForm['tipoPase'] })}
               >
-                <option value="REGULAR">Regular ($6.000)</option>
-                <option value="VIP">VIP ($10.000)</option>
+                <option value="REGULAR">Común ($10.000)</option>
+                <option value="VIP">VIP ($20.000)</option>
               </select>
-            </label>
-            <label className="check">
-              <input
-                type="checkbox"
-                checked={visitante.esJubilado}
-                onChange={(e) => cambiarVisitante(indice, { esJubilado: e.target.checked })}
-              />
-              Jubilado
             </label>
           </div>
         ))}
-        <p className="ayuda">Menores de 12 años y jubilados pagan la mitad.</p>
+        <p className="ayuda">Hasta 3 años no pagan. Hasta 15 años y desde 60 años pagan la mitad.</p>
       </fieldset>
 
       <fieldset>

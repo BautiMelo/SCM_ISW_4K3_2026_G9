@@ -1,12 +1,12 @@
-/* Paleta definida con el PO: https://coolors.co/132a13-31572c-4f772d-90a955-ecf39e */
+/* Paleta y fuente definidas por el PO: https://coolors.co/palette/386641-6a994e-a7c957-f2e8cf-bc4749 */
 :root {
-  --oscuro: #132a13;
-  --primario: #31572c;
-  --secundario: #4f772d;
-  --claro: #90a955;
-  --fondo: #ecf39e;
-  --error: #b3261e;
-  font-family: 'Montserrat', system-ui, sans-serif;
+  --primario: #386641;
+  --secundario: #6a994e;
+  --claro: #a7c957;
+  --fondo: #f2e8cf;
+  --error: #bc4749;
+  --oscuro: #1f3a24; /* texto: primario oscurecido para que tenga buen contraste */
+  font-family: 'Lato', system-ui, sans-serif;
   color: var(--oscuro);
 }
 
@@ -38,7 +38,7 @@ body {
   background: #fff;
   border-radius: 16px;
   padding: 24px;
-  box-shadow: 0 4px 16px rgb(19 42 19 / 12%);
+  box-shadow: 0 4px 16px rgb(56 102 65 / 15%);
 }
 
 .formulario { display: flex; flex-direction: column; gap: 16px; }
@@ -105,7 +105,7 @@ legend { font-weight: 700; padding: 0 6px; }
 
 .error {
   color: var(--error);
-  background: #fdecea;
+  background: #f8e4e4;
   border-radius: 8px;
   padding: 10px 12px;
   margin: 0;
@@ -126,4 +126,71 @@ legend { font-weight: 700; padding: 0 6px; }
 input[aria-invalid='true'] {
   border-color: var(--error);
   outline-color: var(--error);
+}
+
+/* Calendario: los días no disponibles (lunes, feriados, fuera del mes) quedan deshabilitados */
+.calendario { max-width: 360px; }
+
+.calendario-encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.calendario-mes { font-weight: 700; }
+
+.calendario-encabezado button {
+  font: inherit;
+  font-size: 1.4rem;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: var(--fondo);
+  color: var(--primario);
+  cursor: pointer;
+}
+
+.calendario-encabezado button:disabled { opacity: 0.3; cursor: default; }
+
+.calendario-grilla {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  text-align: center;
+}
+
+.calendario-dia-semana { font-size: 0.8rem; font-weight: 700; color: var(--secundario); padding: 4px 0; }
+
+.calendario-dia {
+  font: inherit;
+  aspect-ratio: 1;
+  border: 1px solid var(--claro);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--oscuro);
+  cursor: pointer;
+}
+
+.calendario-dia:hover:not(:disabled) { background: var(--fondo); }
+
+.calendario-dia:disabled {
+  border-color: transparent;
+  background: transparent;
+  color: #b9b2a3;
+  text-decoration: line-through;
+  cursor: not-allowed;
+}
+
+.calendario-dia.seleccionado { background: var(--primario); border-color: var(--primario); color: #fff; font-weight: 700; }
+
+.fecha-elegida { margin: 0; }
+
+/* Celular: menos aire y campos de visitante apilados */
+@media (max-width: 480px) {
+  .pagina { padding: 12px; }
+  .tarjeta { padding: 16px; }
+  .encabezado h1 { font-size: 1.4rem; }
+  .visitante label { flex-basis: 100%; }
 }

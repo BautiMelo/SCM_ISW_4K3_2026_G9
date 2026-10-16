@@ -10,7 +10,6 @@ export interface Sesion {
 export interface VisitanteForm {
   edad: string;
   tipoPase: 'REGULAR' | 'VIP';
-  esJubilado: boolean;
 }
 
 export interface ResultadoCompra {
@@ -34,17 +33,18 @@ export const obtenerSesion = (): Sesion | null => {
 
 export const cerrarSesion = (): void => sessionStorage.removeItem(CLAVE_SESION);
 
-const llamarApi = async <T>(ruta: string, cuerpo: unknown): Promise<T> => {
+// Sin cuerpo hace un GET; con cuerpo, un POST
+const llamarApi = async <T>(ruta: string, cuerpo?: unknown): Promise<T> => {
   const sesion = obtenerSesion();
   let respuesta: Response;
   try {
     respuesta = await fetch(`${API_URL}${ruta}`, {
-      method: 'POST',
+      method: cuerpo === undefined ? 'GET' : 'POST',
       headers: {
         'Content-Type': 'application/json',
         ...(sesion ? { Authorization: `Bearer ${sesion.token}` } : {}),
       },
-      body: JSON.stringify(cuerpo),
+      body: cuerpo === undefined ? undefined : JSON.stringify(cuerpo),
     });
   } catch {
     throw new Error('No se pudo conectar con el servidor. ¿Está levantado el backend?');
@@ -62,6 +62,10 @@ export const iniciarSesion = async (email: string, password: string): Promise<Se
   sessionStorage.setItem(CLAVE_SESION, JSON.stringify(sesion));
   return sesion;
 };
+
+// Fechas que se pueden elegir (AAAA-MM-DD). Las reglas del parque las define el backend.
+export const obtenerFechasDisponibles = async (): Promise<string[]> =>
+  (await llamarApi<{ fechas: string[] }>('/compras/fechas-disponibles')).fechas;
 
 export const comprarEntradas = (datos: {
   fechaVisita: string;
