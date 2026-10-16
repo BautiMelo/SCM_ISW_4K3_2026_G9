@@ -1,9 +1,11 @@
-import { calcularMontoTotal, comprarEntradas, confirmarPago } from '../src/services/compraService';
+import {
+  calcularMontoTotal, comprarEntradas, confirmarPago, validarDiaApertura,
+} from '../src/services/compraService';
 import { crearRepositorioComprasEnMemoria } from '../src/data/repositorioCompras';
 import { SolicitudCompra } from '../src/models/compra';
 
-// Fecha actual fija para que los tests no dependan del día en que se corren: lunes 12/10/2026
-const FECHA_ACTUAL = new Date(2026, 9, 12);
+// Fecha y hora actual fijas para que los tests no dependan de cuándo se corren: martes 13/10/2026 10:00
+const FECHA_ACTUAL = new Date(2026, 9, 13, 10, 0);
 
 // Solicitud que cumple todos los criterios de aceptación. Cada test pisa solo el dato que quiere probar.
 const crearSolicitudValida = (cambios: Partial<SolicitudCompra> = {}): SolicitudCompra => ({
@@ -67,18 +69,18 @@ describe('comprarEntradas', () => {
 
   describe('fecha de visita', () => {
     test('comprar para una fecha pasada falla', async () => {
-      const solicitud = crearSolicitudValida({ fechaVisita: '2026-10-11' }); // domingo, ayer
+      const solicitud = crearSolicitudValida({ fechaVisita: '2026-10-11' }); // domingo, anteayer
 
       await expect(comprarEntradas(solicitud, crearDependencias()))
         .rejects.toThrow('La fecha de visita debe ser hoy o una fecha futura');
     });
 
     test('comprar para el día actual (valor límite) es válido', async () => {
-      const solicitud = crearSolicitudValida({ fechaVisita: '2026-10-12' }); // lunes, hoy
+      const solicitud = crearSolicitudValida({ fechaVisita: '2026-10-13' }); // martes, hoy
 
       const resultado = await comprarEntradas(solicitud, crearDependencias());
 
-      expect(resultado.fechaVisita).toBe('2026-10-12');
+      expect(resultado.fechaVisita).toBe('2026-10-13');
     });
 
     test('comprar sin indicar la fecha de visita falla', async () => {
@@ -104,18 +106,35 @@ describe('comprarEntradas', () => {
   });
 
   describe('días de apertura del parque', () => {
-    test('comprar para un martes (parque cerrado) falla', async () => {
-      const solicitud = crearSolicitudValida({ fechaVisita: '2026-10-13' });
+    const MENSAJE_CERRADO = 'El parque está cerrado ese día. Abre todos los días excepto los lunes, el 25 de diciembre y el 1 de enero';
 
-      await expect(comprarEntradas(solicitud, crearDependencias()))
-        .rejects.toThrow('El parque está cerrado ese día. Abre todos los días excepto martes y jueves');
+    test('comprar para un lunes (parque cerrado) falla', async () => {
+      const solicitud = crearSolicitudValida({ fechaVisita: '2026-10-19' });
+
+      await expect(comprarEntradas(solicitud, crearDependencias())).rejects.toThrow(MENSAJE_CERRADO);
     });
 
-    test('comprar para un jueves (parque cerrado) falla', async () => {
-      const solicitud = crearSolicitudValida({ fechaVisita: '2026-10-15' });
+    test.each([
+      ['martes', '2026-10-20'],
+      ['jueves', '2026-10-15'],
+      ['domingo', '2026-10-18'],
+    ])('comprar para un %s (parque abierto) es válido', async (_dia, fechaVisita) => {
+      const resultado = await comprarEntradas(crearSolicitudValida({ fechaVisita }), crearDependencias());
 
-      await expect(comprarEntradas(solicitud, crearDependencias()))
-        .rejects.toThrow('El parque está cerrado ese día. Abre todos los días excepto martes y jueves');
+      expect(resultado.fechaVisita).toBe(fechaVisita);
+    });
+
+    // Feriados: se prueban con la función auxiliar porque quedan fuera del mes de anticipación permitido
+    test('el 25 de diciembre el parque está cerrado', () => {
+      expect(() => validarDiaApertura(new Date(2026, 11, 25))).toThrow(MENSAJE_CERRADO);
+    });
+
+    test('el 1 de enero el parque está cerrado', () => {
+      expect(() => validarDiaApertura(new Date(2027, 0, 1))).toThrow(MENSAJE_CERRADO);
+    });
+
+    test('el 24 de diciembre (día anterior al feriado, un jueves) el parque está abierto', () => {
+      expect(() => validarDiaApertura(new Date(2026, 11, 24))).not.toThrow();
     });
   });
 
