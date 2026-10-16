@@ -238,7 +238,7 @@ describe('comprarEntradas', () => {
       expect(resultado.urlPago).toBe(URL_PAGO_MP);
       expect(dependencias.pasarelaPago.crearPago).toHaveBeenCalledWith({
         codigoReserva: resultado.codigoReserva,
-        montoTotal: 11000,
+        montoTotal: 20000,
         descripcion: '2 entradas EcoHarmony Park para el 14/10/2026',
       });
     });
@@ -280,10 +280,10 @@ describe('comprarEntradas', () => {
   });
 
   test('la compra informa el monto total a pagar', async () => {
-    // REGULAR adulto ($6.000) + VIP de 8 años con 50% ($5.000)
+    // REGULAR adulto ($10.000) + VIP de 8 años con 50% ($10.000)
     const resultado = await comprarEntradas(crearSolicitudValida(), crearDependencias());
 
-    expect(resultado.montoTotal).toBe(11000);
+    expect(resultado.montoTotal).toBe(20000);
   });
 
   describe('mail de confirmación', () => {
@@ -297,7 +297,7 @@ describe('comprarEntradas', () => {
       expect(mail.destinatario).toBe('ana@mail.com');
       expect(mail.asunto).toBe('EcoHarmony Park - Confirmación de tu reserva');
       expect(mail.cuerpo).toContain('2 entradas para el 14/10/2026');
-      expect(mail.cuerpo).toContain('$11000');
+      expect(mail.cuerpo).toContain('$20000');
       expect(mail.cuerpo).toContain(resultado.codigoReserva);
     });
 
@@ -379,17 +379,22 @@ describe('confirmarPago (vuelta de Mercado Pago)', () => {
 });
 
 describe('calcularMontoTotal', () => {
+  // Precios y descuentos definidos por el PO: Común (REGULAR) $10.000, VIP $20.000.
+  // <= 3 años no pagan; <= 15 años y >= 60 años pagan 50%.
   test.each([
-    ['REGULAR adulto', [{ edad: 30, tipoPase: 'REGULAR' }], 6000],
-    ['VIP adulto', [{ edad: 30, tipoPase: 'VIP' }], 10000],
-    ['REGULAR menor de 12 paga la mitad', [{ edad: 11, tipoPase: 'REGULAR' }], 3000],
-    ['REGULAR de 12 años (valor límite) paga completo', [{ edad: 12, tipoPase: 'REGULAR' }], 6000],
-    ['VIP jubilado paga la mitad', [{ edad: 70, tipoPase: 'VIP', esJubilado: true }], 5000],
+    ['REGULAR adulto paga $10.000', [{ edad: 30, tipoPase: 'REGULAR' }], 10000],
+    ['VIP adulto paga $20.000', [{ edad: 30, tipoPase: 'VIP' }], 20000],
+    ['de 3 años (valor límite) no paga', [{ edad: 3, tipoPase: 'VIP' }], 0],
+    ['de 4 años paga la mitad', [{ edad: 4, tipoPase: 'REGULAR' }], 5000],
+    ['de 15 años (valor límite) paga la mitad', [{ edad: 15, tipoPase: 'REGULAR' }], 5000],
+    ['de 16 años paga completo', [{ edad: 16, tipoPase: 'REGULAR' }], 10000],
+    ['de 59 años paga completo', [{ edad: 59, tipoPase: 'VIP' }], 20000],
+    ['de 60 años (valor límite) paga la mitad', [{ edad: 60, tipoPase: 'VIP' }], 10000],
     ['varios visitantes suman sus precios', [
       { edad: 40, tipoPase: 'VIP' },
       { edad: 38, tipoPase: 'REGULAR' },
-      { edad: 5, tipoPase: 'REGULAR' },
-    ], 19000],
+      { edad: 2, tipoPase: 'REGULAR' },
+    ], 30000],
   ])('%s', (_descripcion, visitantes, montoEsperado) => {
     expect(calcularMontoTotal(visitantes)).toBe(montoEsperado);
   });
