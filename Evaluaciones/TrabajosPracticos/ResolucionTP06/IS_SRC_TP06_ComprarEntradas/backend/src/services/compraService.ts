@@ -6,8 +6,10 @@ import {
 
 const FORMAS_PAGO = ['EFECTIVO', 'TARJETA'];
 const TIPOS_PASE = ['VIP', 'REGULAR'];
-// getDay(): 0 = domingo, 1 = lunes, 2 = martes, ..., 4 = jueves
-const DIAS_CERRADOS = [2, 4];
+// getDay(): 0 = domingo, 1 = lunes, ..., 6 = sábado
+const DIAS_SEMANA_CERRADOS = [1];
+// Feriados en que cierra, como 'MM-DD': 25 de diciembre y 1 de enero
+const FERIADOS_CERRADOS = ['12-25', '01-01'];
 const CANTIDAD_MAXIMA_ENTRADAS = 10;
 const EDAD_MAXIMA = 120;
 const PRECIOS_PASE: Record<string, number> = { REGULAR: 6000, VIP: 10000 };
@@ -58,8 +60,11 @@ export const validarFechaVisita = (fechaTexto: string, fechaActual: Date): Date 
 };
 
 export const validarDiaApertura = (fechaVisita: Date): void => {
-  if (DIAS_CERRADOS.includes(fechaVisita.getDay())) {
-    throw new CompraError('El parque está cerrado ese día. Abre todos los días excepto martes y jueves');
+  const mesDia = `${String(fechaVisita.getMonth() + 1).padStart(2, '0')}-${String(fechaVisita.getDate()).padStart(2, '0')}`;
+  if (DIAS_SEMANA_CERRADOS.includes(fechaVisita.getDay()) || FERIADOS_CERRADOS.includes(mesDia)) {
+    throw new CompraError(
+      'El parque está cerrado ese día. Abre todos los días excepto los lunes, el 25 de diciembre y el 1 de enero',
+    );
   }
 };
 
