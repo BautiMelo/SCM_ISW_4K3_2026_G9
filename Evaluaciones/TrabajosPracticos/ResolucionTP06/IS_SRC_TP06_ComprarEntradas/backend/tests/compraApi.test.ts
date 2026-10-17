@@ -9,7 +9,7 @@ const crearAppDePrueba = () => {
   const dependencias = {
     fechaActual: new Date(2026, 9, 12), // lunes 12/10/2026
     enviadorMail: { enviar: jest.fn().mockResolvedValue(undefined) },
-    pasarelaPago: { crearPago: jest.fn(), consultarPago: jest.fn() },
+    pasarelaPago: { crearPago: jest.fn(), consultarPago: jest.fn(), buscarPagoPorReserva: jest.fn() },
     repositorioCompras: crearRepositorioComprasEnMemoria(),
   };
   const app = crearApp({ jwtSecret: JWT_SECRET, usuarios: USUARIOS, crearDependencias: () => dependencias });
@@ -100,5 +100,58 @@ describe('API /compras', () => {
     expect(compra.body.urlPago).toBe('https://mercadopago.test/pagar');
     expect(respuesta.status).toBe(200);
     expect(respuesta.body.cantidadEntradas).toBe(1);
+  });
+
+  test('consultar el estado de una compra en espera responde 200 con el estado del pago', async () => {
+    const { app, dependencias } = crearAppDePrueba();
+    const token = await iniciarSesion(app);
+    dependencias.pasarelaPago.crearPago.mockResolvedValue('https://mercadopago.test/pagar');
+    const compra = await request(app)
+      .post('/compras')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ ...COMPRA_VALIDA, formaPago: 'TARJETA' });
+    dependencias.pasarelaPago.buscarPagoPorReserva.mockResolvedValue({
+      estado: 'pending',
+      codigoReserva: compra.body.codigoReserva,
+    });
+
+    const respuesta = await request(app)
+      .get(`/compras/${compra.body.codigoReserva}/estado`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(respuesta.status).toBe(200);
+    expect(respuesta.body.estado).toBe('PENDIENTE_PAGO');
+    expect(respuesta.body.pagoMercadoPago).toBe('pending');
+  });
+
+  test('al aprobarse el pago en Mercado Pago, consultar el estado confirma la compra', async () => {
+    const { app, dependencias } = crearAppDePrueba();
+    const token = await iniciarSesion(app);
+    dependencias.pasarelaPago.crearPago.mockResolvedValue('https://mercadopago.test/pagar');
+    const compra = await request(app)
+      .post('/compras')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ ...COMPRA_VALIDA, formaPago: 'TARJETA' });
+    dependencias.pasarelaPago.buscarPagoPorReserva.mockResolvedValue({
+      estado: 'approved',
+      codigoReserva: compra.body.codigoReserva,
+    });
+
+    const respuesta = await request(app)
+      .get(`/compras/${compra.body.codigoReserva}/estado`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(respuesta.status).toBe(200);
+    expect(respuesta.body.estado).toBe('PAGADA');
+    expect(respuesta.body.resultado.mensaje).toBe('Compra realizada con éxito: 1 entradas para el 14/10/2026');
+    expect(dependencias.enviadorMail.enviar).toHaveBeenCalledTimes(1);
+  });
+
+  test('consultar el estado sin haber iniciado sesión responde 401', async () => {
+    const { app } = crearAppDePrueba();
+
+    const respuesta = await request(app).get('/compras/CODIGO12/estado');
+
+    expect(respuesta.status).toBe(401);
   });
 });

@@ -280,8 +280,54 @@ export const confirmarPago = async (
     throw new CompraError('El pago no fue aprobado por Mercado Pago');
   }
 
+  return aplicarPagoAprobado(compra, dependencias);
+};
+
+// Cambia la compra a PAGADA, guarda y avisa por mail. Tanto la vuelta de Mercado Pago como el
+// polling del frontend terminan acá: ambos caminos pueden llegar, la operacion debe ser idempotente.
+const aplicarPagoAprobado = async (
+  compra: Compra,
+  dependencias: DependenciasCompra,
+): Promise<ResultadoCompra> => {
   const compraPagada: Compra = { ...compra, estado: 'PAGADA' };
   await dependencias.repositorioCompras.guardar(compraPagada);
   await dependencias.enviadorMail.enviar(armarMailConfirmacion(compraPagada));
   return armarResultado(compraPagada);
+};
+
+export interface EstadoConsulta {
+  estado: EstadoCompra;
+  // Estado del pago en Mercado Pago cuando la compra está PENDIENTE_PAGO:
+  // '' (todavía no hay pago), 'pending', 'rejected', 'approved', ...
+  pagoMercadoPago?: string;
+  // Datos de la compra, presentes cuando ya se cerró (RESERVADA o PAGADA)
+  resultado?: ResultadoCompra;
+}
+
+// Polling: mientras el usuario paga en la ventana de Mercado Pago (que puede no volver a la app
+// si el checkout corre en local), el frontend consulta cada tantos segundos cómo viene el pago
+export const consultarEstadoPago = async (
+  codigoReserva: string,
+  dependencias: DependenciasCompra,
+): Promise<EstadoConsulta> => {
+  const compra = await dependencias.repositorioCompras.buscarPorCodigo(codigoReserva);
+  if (!compra) {
+    throw new CompraError(`No existe una compra con el código ${codigoReserva}`);
+  }
+
+  if (compra.estado === 'PENDIENTE_PAGO') {
+    let pagoMercadoPago = '';
+    try {
+      pagoMercadoPago = (await dependencias.pasarelaPago.buscarPagoPorReserva(codigoReserva)).estado;
+    } catch {
+      pagoMercadoPago = ''; // todavía no creó ningún pago: sigue esperando
+    }
+    if (pagoMercadoPago === 'approved') {
+      return { estado: 'PAGADA', pagoMercadoPago, resultado: await aplicarPagoAprobado(compra, dependencias) };
+    }
+    // El rechazo no cierra la compra: el usuario puede reintentar y crear un pago nuevo
+    return { estado: 'PENDIENTE_PAGO', pagoMercadoPago };
+  }
+
+  return { estado: compra.estado, resultado: armarResultado(compra) };
 };

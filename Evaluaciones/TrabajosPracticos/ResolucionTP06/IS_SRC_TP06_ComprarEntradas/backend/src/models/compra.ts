@@ -67,6 +67,9 @@ export interface EnviadorMail {
 export interface PasarelaPago {
   crearPago: (datos: DatosPago) => Promise<string>; // devuelve la URL a la que se redirige al usuario
   consultarPago: (idPago: string) => Promise<PagoConsultado>;
+  // Último pago de Mercado Pago con external_reference = codigoReserva (lo consulta el polling del frontend).
+  // Si todavía no hay ningún pago, se rechaza con error: el servicio lo interpreta como "sigue esperando".
+  buscarPagoPorReserva: (codigoReserva: string) => Promise<PagoConsultado>;
 }
 
 export interface RepositorioCompras {
