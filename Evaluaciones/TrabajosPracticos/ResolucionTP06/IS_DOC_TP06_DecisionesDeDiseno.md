@@ -53,8 +53,11 @@ Cada criterio se construyó con el ciclo **Red → Green → Refactor**, y **cad
 | 16 | P26 — mismo día hasta las 17:30 | `f9a796a` se vendía para hoy a cualquier hora | `560bc1b` corte a las 17:30 | `dc004f4` separa `validarHorarioCompraMismoDia` y `validarAnticipacionMaxima` |
 | 17 | P27 — máximo 10 por usuario y fecha | `5f30253` sumando compras se superaban 10 | `00edacf` suma compras RESERVADAS y PAGADAS del usuario para esa fecha | — |
 | 18 | P2 — calendario con días deshabilitados | `d9868bd` no había forma de saber qué días habilitar | `4df9ac5` `obtenerFechasDisponibles` + `GET /compras/fechas-disponibles` | — |
+| 19 | Falta de vuelta de Mercado Pago (checkout en localhost) | `4a567b7` sin `consultarEstadoPago` la compra sin vuelta del browser quedaba `PENDIENTE_PAGO` para siempre | `4a567b7` `buscarPagoPorReserva` consulta a Mercado Pago por `external_reference` y confirma el pago aprobado | `4a567b7` `confirmarPago` y el polling comparten el helper idempotente `aplicarPagoAprobado` |
 
 El ciclo 5b muestra el valor de pensar valores límite antes de escribir el código. Un test con el 31 de febrero descubrió que `Date` "corrige" fechas inválidas en silencio, y el sistema vendía entradas para un día que no existe.
+
+A diferencia de los anteriores, el ciclo 19 se resolvió en dos commits: `4a567b7` concentra Red, Green y Refactor del backend (tests, integración y servicio, con su refactor aplicado al mismo tiempo), y `328de8b` la pantalla de espera del frontend (popup + polling cada 2 segundos).
 
 ## 3. Pruebas de usuario de la US → tests automatizados
 
@@ -64,8 +67,9 @@ El ciclo 5b muestra el valor de pensar valores límite antes de escribir el cód
 | Comprar sin seleccionar forma de pago **(falla)** | `comprar sin seleccionar forma de pago falla` |
 | Comprar con fecha en que el parque está cerrado **(falla)** | `comprar para un lunes (parque cerrado) falla`, `el 25 de diciembre el parque está cerrado`, `el 1 de enero el parque está cerrado`. En la UI, además, esos días no se pueden elegir en el calendario |
 | Comprar más de 10 entradas **(falla)** | `comprar más de 10 entradas falla` (+ límites: 10 pasa, 0 falla) y, sumando compras anteriores, `con 8 entradas ya reservadas para esa fecha, comprar 3 más falla` |
+| Pagar en la ventana de Mercado Pago y no volver a la app (checkout en localhost, ciclo 19) | `cuando Mercado Pago ya aprobó el pago queda PAGADA, informa el resultado y envía el mail` + `con el pago todavía sin aprobar responde PENDIENTE_PAGO y no envía mail` + `una compra ya PAGADA no vuelve a consultar Mercado Pago ni re-envía el mail` (el frontend consulta cada 2 segundos) |
 
-En total hay **72 tests**: 66 del servicio de compra y 6 de la API. El servicio `compraService.ts` tiene 100% de cobertura (`npm run test:coverage`).
+En total hay **83 tests**: 74 del servicio de compra y 9 de la API. El servicio `compraService.ts` tiene 100% de cobertura (`npm run test:coverage`).
 
 ## 4. Decisiones de diseño
 
@@ -73,7 +77,7 @@ En total hay **72 tests**: 66 del servicio de compra y 6 de la API. El servicio 
 `comprarEntradas(solicitud, dependencias)` en `backend/src/services/compraService.ts` concentra todos los criterios de aceptación. No conoce Express, ni Gmail, ni Mercado Pago. El controller HTTP solo traduce request/response.
 
 **4.2 Función principal + funciones auxiliares**, siguiendo el formato de la guía TDD de la cátedra (`inscribirseAActividad` + `validarFecha`, ...).
-La función principal es `comprarEntradas`, que valida y después registra, cobra y notifica. Las auxiliares son `validarUsuario`, `validarFormaPago`, `validarFechaVisita` (que usa `validarHorarioCompraMismoDia` y `validarAnticipacionMaxima`), `validarDiaApertura`, `validarCantidadEntradas`, `validarVisitantes`, `validarTopeEntradasPorFecha` y `calcularMontoTotal`. Cada una tiene una única responsabilidad y se exporta para poder probarla aislada.
+La función principal es `comprarEntradas`, que valida y después registra, cobra y notifica. Para el pago con tarjeta hay dos funciones principales más: `confirmarPago` (cuando el usuario vuelve del checkout a la app) y `consultarEstadoPago` (cuando el frontend consulta el estado, ciclo 19). Las auxiliares son `validarUsuario`, `validarFormaPago`, `validarFechaVisita` (que usa `validarHorarioCompraMismoDia` y `validarAnticipacionMaxima`), `validarDiaApertura`, `validarCantidadEntradas`, `validarVisitantes`, `validarTopeEntradasPorFecha` y `calcularMontoTotal`; `aplicarPagoAprobado` comparte la confirmación entre `confirmarPago` y el polling. Cada una tiene una única responsabilidad y se exporta para poder probarla aislada (las que dependen de efectos externos se inyectan, ver 4.4).
 
 **4.3 Errores de negocio con mensaje para el usuario.**
 Cada criterio incumplido lanza un `CompraError` con un mensaje claro ("La cantidad de entradas debe ser un número entero entre 1 y 10"). La API lo traduce a `400 { mensaje }`, y el frontend muestra ese mensaje tal cual. Cualquier otro error es una falla técnica: se responde `500` sin exponer detalles internos.
@@ -88,7 +92,7 @@ Las dependencias externas se pasan como parámetro (`DependenciasCompra`):
 En los tests se reemplazan por **dobles** (`jest.fn()`). Así se puede verificar *que se envió el mail y con qué contenido* sin mandar mails, y *que se pidió el cobro y por cuánto* sin cobrar. La **fecha y hora actual fijas** (martes 13/10/2026 a las 10:00) hacen que los tests den el mismo resultado cualquier día que se corran.
 
 **4.5 Con tarjeta, el mail se envía recién cuando Mercado Pago aprueba el pago.**
-Mandar "compra confirmada" antes de cobrar sería incorrecto. Por eso la compra con tarjeta queda `PENDIENTE_PAGO`. Cuando Mercado Pago devuelve al usuario, `confirmarPago` **consulta a Mercado Pago** el estado real del pago (no confía en los parámetros de la URL), verifica que el pago corresponda a esa compra (`external_reference`) y recién ahí la marca `PAGADA` y envía el mail. Si se confirma dos veces, por ejemplo porque el usuario recarga la página, no se reenvía el mail.
+Mandar "compra confirmada" antes de cobrar sería incorrecto. Por eso la compra con tarjeta queda `PENDIENTE_PAGO`. La aprobación del pago siempre se verifica **consultando a Mercado Pago** (nunca confiando en los parámetros de la URL), se verifica que el pago corresponda a esa compra (`external_reference`) y recién ahí la compra se marca `PAGADA` y se envía el mail. Esa confirmación es idempotente (`aplicarPagoAprobado`): si se confirma dos veces, por ejemplo porque el usuario recarga la página o porque compiten la vuelta del browser y el polling, no se vuelve a marcar ni a enviar mail.
 
 **4.6 Secretos fuera del código.**
 El Access Token de Mercado Pago, el JWT secret y las credenciales de Gmail se leen del `.env`, que está en `.gitignore`. En el repo solo está `.env.example`.
@@ -105,6 +109,9 @@ Cuentan las compras `RESERVADA` (efectivo) y `PAGADA` (tarjeta aprobada). Una co
 
 **4.10 Sin base de datos.**
 Usuarios y compras son mocks en memoria (`src/data`). El repositorio está detrás de la interfaz `RepositorioCompras`, así que reemplazarlo por una base real no cambia el servicio.
+
+**4.11 Si Mercado Pago no devuelve al usuario, el pago se confirma por polling.**
+El CA 4 exige redirigir a Mercado Pago y `ResultadoPage` espera la vuelta con `payment_id` en la URL. Con credenciales de prueba y `localhost`, Mercado Pago no redirige de vuelta ni muestra el botón "Volver al sitio": el retorno automático (`auto_return`) solo funciona con una URL `https` pública. Como los webhooks están fuera de alcance (no exigen ese requisito), la confirmación de la compra no depende de la vuelta del browser: el backend consulta a Mercado Pago por `external_reference` (`buscarPagoPorReserva` en la `pasarelaPago`) y el frontend abre el checkout en una ventana emergente (así la app queda viva) y pregunta el estado cada 2 segundos (`GET /compras/:codigo/estado`, que requiere sesión). Cuando la búsqueda encuentra un pago `approved`, la compra pasa a `PAGADA` y se envía el mail por el mismo camino de la vuelta normal (4.5). Un pago `rejected` no cierra la compra: el usuario puede reintentar y el pago vigente es el más nuevo con esa referencia (la búsqueda se ordena por `date_created desc`). El abandono de checkout en localhost no requiere más manejo: una compra en espera es la misma limitación conocida del 4.9 (no impide comprar de nuevo ni suma al tope de 10 por fecha).
 
 ## 5. Reglas del dominio
 
@@ -134,7 +141,7 @@ Usuarios y compras son mocks en memoria (`src/data`). El repositorio está detr�
 | La cantidad de entradas debe coincidir con la cantidad de visitantes cargados | Derivado del CA 1 ("la edad de cada visitante") |
 | Si el mes siguiente es más corto, el límite es su último día (31/01 → 28/02) | P25 no contempla el fin de mes |
 
-**Fuera de alcance:** QR en el mail y webhooks de Mercado Pago. Ninguno figura en los criterios de aceptación de la US.
+**Fuera de alcance:** QR en el mail y webhooks de Mercado Pago. Ninguno figura en los criterios de aceptación de la US (el polling de 4.11 no los necesita: el backend consulta la API de Mercado Pago por sí mismo).
 
 ## 6. Qué no se testea automáticamente y por qué
 
