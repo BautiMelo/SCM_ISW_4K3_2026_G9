@@ -1,0 +1,196 @@
+/* Paleta y fuente definidas por el PO: https://coolors.co/palette/386641-6a994e-a7c957-f2e8cf-bc4749 */
+:root {
+  --primario: #386641;
+  --secundario: #6a994e;
+  --claro: #a7c957;
+  --fondo: #f2e8cf;
+  --error: #bc4749;
+  --oscuro: #1f3a24; /* texto: primario oscurecido para que tenga buen contraste */
+  font-family: 'Lato', system-ui, sans-serif;
+  color: var(--oscuro);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--fondo);
+}
+
+.pagina {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.encabezado h1 { color: var(--primario); margin: 8px 0; }
+.usuario { display: flex; gap: 12px; align-items: center; }
+
+.tarjeta {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 16px rgb(56 102 65 / 15%);
+}
+
+.formulario { display: flex; flex-direction: column; gap: 16px; }
+.formulario h2 { margin: 0; }
+
+label { display: flex; flex-direction: column; gap: 4px; font-weight: 600; flex: 1; }
+label.check { flex-direction: row; align-items: center; gap: 8px; font-weight: 400; }
+
+input, select {
+  font: inherit;
+  padding: 10px 12px;
+  border: 1px solid var(--claro);
+  border-radius: 8px;
+}
+
+input:focus, select:focus { outline: 2px solid var(--secundario); }
+
+fieldset {
+  border: 1px solid var(--claro);
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+legend { font-weight: 700; padding: 0 6px; }
+
+.fila { display: flex; gap: 16px; flex-wrap: wrap; }
+
+.visitante {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed var(--claro);
+}
+
+.visitante .numero { font-weight: 700; color: var(--secundario); padding-bottom: 10px; }
+
+.boton {
+  font: inherit;
+  font-weight: 700;
+  background: var(--primario);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 14px;
+  cursor: pointer;
+}
+
+.boton:hover { background: var(--secundario); }
+.boton:disabled { opacity: 0.6; cursor: wait; }
+
+.boton-link {
+  font: inherit;
+  background: none;
+  border: none;
+  color: var(--primario);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.error {
+  color: var(--error);
+  background: #f8e4e4;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 0;
+}
+
+.ayuda { color: var(--secundario); font-size: 0.9rem; margin: 0; }
+
+.resultado { text-align: center; display: flex; flex-direction: column; gap: 12px; align-items: center; }
+.resultado .icono { font-size: 3rem; margin: 0; }
+
+/* Aviso inmediato debajo de un campo con un valor que la compra no va a aceptar */
+.aviso {
+  color: var(--error);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+input[aria-invalid='true'] {
+  border-color: var(--error);
+  outline-color: var(--error);
+}
+
+/* Calendario: los días no disponibles (lunes, feriados, fuera del mes) quedan deshabilitados */
+.calendario { max-width: 360px; }
+
+.calendario-encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.calendario-mes { font-weight: 700; }
+
+.calendario-encabezado button {
+  font: inherit;
+  font-size: 1.4rem;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: var(--fondo);
+  color: var(--primario);
+  cursor: pointer;
+}
+
+.calendario-encabezado button:disabled { opacity: 0.3; cursor: default; }
+
+.calendario-grilla {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  text-align: center;
+}
+
+.calendario-dia-semana { font-size: 0.8rem; font-weight: 700; color: var(--secundario); padding: 4px 0; }
+
+.calendario-dia {
+  font: inherit;
+  aspect-ratio: 1;
+  border: 1px solid var(--claro);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--oscuro);
+  cursor: pointer;
+}
+
+.calendario-dia:hover:not(:disabled) { background: var(--fondo); }
+
+.calendario-dia:disabled {
+  border-color: transparent;
+  background: transparent;
+  color: #b9b2a3;
+  text-decoration: line-through;
+  cursor: not-allowed;
+}
+
+.calendario-dia.seleccionado { background: var(--primario); border-color: var(--primario); color: #fff; font-weight: 700; }
+
+.fecha-elegida { margin: 0; }
+
+/* Celular: menos aire y campos de visitante apilados */
+@media (max-width: 480px) {
+  .pagina { padding: 12px; }
+  .tarjeta { padding: 16px; }
+  .encabezado h1 { font-size: 1.4rem; }
+  .visitante label { flex-basis: 100%; }
+}
