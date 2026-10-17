@@ -80,3 +80,13 @@ export const comprarEntradas = (datos: {
 
 export const confirmarPago = (codigoReserva: string, idPago: string): Promise<ResultadoCompra> =>
   llamarApi<ResultadoCompra>(`/compras/${codigoReserva}/confirmar-pago`, { idPago });
+
+// Polling mientras se paga en la ventana de Mercado Pago (que puede no volver a la app en local)
+export interface EstadoConsulta {
+  estado: 'RESERVADA' | 'PENDIENTE_PAGO' | 'PAGADA';
+  pagoMercadoPago?: string; // '', pending, rejected, approved...
+  resultado?: ResultadoCompra; // presente cuando la compra ya se cerró (RESERVADA o PAGADA)
+}
+
+export const consultarEstadoPago = (codigoReserva: string): Promise<EstadoConsulta> =>
+  llamarApi<EstadoConsulta>(`/compras/${codigoReserva}/estado`);

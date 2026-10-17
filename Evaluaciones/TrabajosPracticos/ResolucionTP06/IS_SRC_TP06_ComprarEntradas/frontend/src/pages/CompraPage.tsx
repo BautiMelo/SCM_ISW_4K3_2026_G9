@@ -1,5 +1,5 @@
-import { FormEvent, useEffect, useState } from 'react';
-import { comprarEntradas, obtenerFechasDisponibles, ResultadoCompra, VisitanteForm } from '../api';
+import { FormEvent, useEffect, useRef, useState } from 'react';
+import { consultarEstadoPago, comprarEntradas, obtenerFechasDisponibles, ResultadoCompra, VisitanteForm } from '../api';
 import { Calendario } from '../components/Calendario';
 
 interface CompraPageProps {
@@ -23,6 +23,10 @@ export const CompraPage = ({ onCompraRealizada }: CompraPageProps) => {
   const [formaPago, setFormaPago] = useState<string>();
   const [error, setError] = useState('');
   const [enviando, setEnviando] = useState(false);
+  // Compra con tarjeta en espera: se abre Mercado Pago en una ventana y se consulta el pago cada 2 segundos
+  const [pagoEnCurso, setPagoEnCurso] = useState<{ codigoReserva: string; urlPago: string } | null>(null);
+  const [avisoPago, setAvisoPago] = useState('');
+  const ventanaPago = useRef<Window | null>(null);
 
   useEffect(() => {
     obtenerFechasDisponibles().then(setFechasDisponibles).catch((e: Error) => setError(e.message));
@@ -48,7 +52,10 @@ export const CompraPage = ({ onCompraRealizada }: CompraPageProps) => {
     try {
       const resultado = await comprarEntradas({ fechaVisita, cantidadEntradas, visitantes, formaPago });
       if (resultado.urlPago) {
-        window.location.href = resultado.urlPago; // tarjeta: redirige a Mercado Pago
+        // Tarjeta: Mercado Pago se abre en una ventana y el pago se sigue acá por polling
+        abrirMercadoPago(resultado.urlPago);
+        setPagoEnCurso({ codigoReserva: resultado.codigoReserva, urlPago: resultado.urlPago });
+        setEnviando(false);
         return;
       }
       onCompraRealizada(resultado);
@@ -57,6 +64,63 @@ export const CompraPage = ({ onCompraRealizada }: CompraPageProps) => {
     }
     setEnviando(false);
   };
+
+  const abrirMercadoPago = (urlPago: string) => {
+    ventanaPago.current = window.open(urlPago, 'mercadopago', 'width=800,height=700');
+  };
+
+  const cancelarPago = () => {
+    ventanaPago.current?.close();
+    setPagoEnCurso(null);
+    setAvisoPago('');
+  };
+
+  useEffect(() => {
+    if (!pagoEnCurso) return;
+    let consultaEnCurso = false; // no solaparse si un request tarda más que el intervalo
+    const intervalo = setInterval(async () => {
+      if (consultaEnCurso) return;
+      consultaEnCurso = true;
+      try {
+        const info = await consultarEstadoPago(pagoEnCurso.codigoReserva);
+        if (info.estado === 'PAGADA' && info.resultado) {
+          setPagoEnCurso(null);
+          onCompraRealizada(info.resultado);
+        } else if (info.pagoMercadoPago === 'rejected') {
+          setAvisoPago('El pago fue rechazado. Podés reintentarlo en la ventana de Mercado Pago o cancelar la compra.');
+        } else {
+          setAvisoPago('');
+        }
+      } catch (e) {
+        setAvisoPago((e as Error).message);
+      } finally {
+        consultaEnCurso = false;
+      }
+    }, 2000);
+    return () => clearInterval(intervalo);
+  }, [pagoEnCurso, onCompraRealizada]);
+
+  if (pagoEnCurso) {
+    const ventanaCerrada = !ventanaPago.current || ventanaPago.current.closed;
+    return (
+      <div className="resultado">
+        <p className="icono">💳</p>
+        <h2>Completá el pago en Mercado Pago</h2>
+        <p>
+          Reserva <strong>{pagoEnCurso.codigoReserva}</strong> en espera: cuando se apruebe el pago,
+          esta página muestra el resultado sola.
+        </p>
+        {avisoPago && <p className="error" role="alert">{avisoPago}</p>}
+        {ventanaCerrada && <p className="ayuda">La ventana de Mercado Pago está cerrada.</p>}
+        <div className="botones">
+          <button type="button" className="boton" onClick={() => abrirMercadoPago(pagoEnCurso.urlPago)}>
+            {ventanaCerrada ? 'Abrir Mercado Pago' : 'Abrir Mercado Pago de nuevo'}
+          </button>
+          <button type="button" className="boton" onClick={cancelarPago}>Cancelar compra</button>
+        </div>
+      </div>
+    );
+  }
 
   const avisoCantidad = cantidadEntradas > CANTIDAD_MAXIMA_ENTRADAS
     ? `No se pueden comprar más de ${CANTIDAD_MAXIMA_ENTRADAS} entradas.`
