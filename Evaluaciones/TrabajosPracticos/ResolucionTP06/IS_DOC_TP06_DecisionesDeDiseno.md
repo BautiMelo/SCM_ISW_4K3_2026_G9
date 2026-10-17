@@ -44,7 +44,6 @@ Cada criterio se construyó con el ciclo **Red → Green → Refactor**, y **cad
 | 11 | CA 3 + 4 — confirmar pago con tarjeta | `0c39f57` no había `confirmarPago` | `c6d39aa` verifica el pago, marca PAGADA y envía el mail | `a163922` unifica cómo se arman el resultado y el mail |
 | 12 | CA 9 en la API (HTTP) | `1048995` no existía la API | `0afaa67` login JWT, `POST /compras`, errores 400/401/500 | `443dc97` no enviar el email del comprador a Mercado Pago |
 
-**Segunda iteración: respuestas del PO.** Las respuestas del PO cambiaron reglas que habíamos tomado del relevamiento de 2025. Se aplicaron con el mismo ciclo: primero se cambiaron los tests para que expresaran la regla nueva (y fallaran), después el código.
 
 | # | Regla del PO | Red (test que falla) | Green (código mínimo) | Refactor |
 |---|---|---|---|---|
@@ -73,8 +72,6 @@ En total hay **72 tests**: 66 del servicio de compra y 6 de la API. El servicio 
 **4.1 La lógica de negocio vive en una función pura y testeable.**
 `comprarEntradas(solicitud, dependencias)` en `backend/src/services/compraService.ts` concentra todos los criterios de aceptación. No conoce Express, ni Gmail, ni Mercado Pago. El controller HTTP solo traduce request/response.
 
-En el trabajo de 2025 las validaciones estaban repartidas entre pantallas y controller, y no se podían testear. Con esta separación cada criterio tiene su test unitario.
-
 **4.2 Función principal + funciones auxiliares**, siguiendo el formato de la guía TDD de la cátedra (`inscribirseAActividad` + `validarFecha`, ...).
 La función principal es `comprarEntradas`, que valida y después registra, cobra y notifica. Las auxiliares son `validarUsuario`, `validarFormaPago`, `validarFechaVisita` (que usa `validarHorarioCompraMismoDia` y `validarAnticipacionMaxima`), `validarDiaApertura`, `validarCantidadEntradas`, `validarVisitantes`, `validarTopeEntradasPorFecha` y `calcularMontoTotal`. Cada una tiene una única responsabilidad y se exporta para poder probarla aislada.
 
@@ -94,7 +91,7 @@ En los tests se reemplazan por **dobles** (`jest.fn()`). Así se puede verificar
 Mandar "compra confirmada" antes de cobrar sería incorrecto. Por eso la compra con tarjeta queda `PENDIENTE_PAGO`. Cuando Mercado Pago devuelve al usuario, `confirmarPago` **consulta a Mercado Pago** el estado real del pago (no confía en los parámetros de la URL), verifica que el pago corresponda a esa compra (`external_reference`) y recién ahí la marca `PAGADA` y envía el mail. Si se confirma dos veces, por ejemplo porque el usuario recarga la página, no se reenvía el mail.
 
 **4.6 Secretos fuera del código.**
-El Access Token de Mercado Pago, el JWT secret y las credenciales de Gmail se leen del `.env`, que está en `.gitignore`. En el repo solo está `.env.example`. En el trabajo de 2025 estos valores estaban escritos en el código.
+El Access Token de Mercado Pago, el JWT secret y las credenciales de Gmail se leen del `.env`, que está en `.gitignore`. En el repo solo está `.env.example`.
 
 **4.7 Fechas sin corrimientos de zona horaria.**
 La fecha viaja como texto `AAAA-MM-DD` y se interpreta en hora local. `new Date('AAAA-MM-DD')` la toma en UTC, y en Argentina eso puede correrla al día anterior y validar mal el día de apertura.
@@ -107,7 +104,7 @@ Cuentan las compras `RESERVADA` (efectivo) y `PAGADA` (tarjeta aprobada). Una co
 *Limitación conocida:* si un usuario deja una compra con tarjeta pendiente, hace otra compra para la misma fecha y después paga la pendiente, puede superar las 10 entradas. Rechazarlo al confirmar el pago no sirve, porque Mercado Pago ya cobró. Por lo improbable del caso se deja documentado.
 
 **4.10 Sin base de datos.**
-Usuarios y compras son mocks en memoria (`src/data`), igual que en el trabajo de 2025. El repositorio está detrás de la interfaz `RepositorioCompras`, así que reemplazarlo por una base real no cambia el servicio.
+Usuarios y compras son mocks en memoria (`src/data`). El repositorio está detrás de la interfaz `RepositorioCompras`, así que reemplazarlo por una base real no cambia el servicio.
 
 ## 5. Reglas del dominio
 
