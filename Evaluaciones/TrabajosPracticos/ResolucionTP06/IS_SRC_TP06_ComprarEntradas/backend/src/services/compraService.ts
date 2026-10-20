@@ -226,6 +226,14 @@ const armarMailConfirmacion = (compra: Compra): Mail => {
   };
 };
 
+// Con monto $0 no hay nada que cobrar: no se va a Mercado Pago aunque haya elegido tarjeta
+export const determinarEstadoInicial = (formaPago: string, montoTotal: number): EstadoCompra => {
+  if (montoTotal === 0) {
+    return 'SIN_COSTO';
+  }
+  return formaPago === 'TARJETA' ? 'PENDIENTE_PAGO' : 'RESERVADA';
+};
+
 export const comprarEntradas = async (
   solicitud: SolicitudCompra,
   dependencias: DependenciasCompra,
@@ -245,12 +253,7 @@ export const comprarEntradas = async (
 
   // A partir de acá la solicitud ya cumple todos los criterios de aceptación
   const montoTotal = calcularMontoTotal(solicitud.visitantes);
-  // Con monto $0 no hay nada que cobrar: no se va a Mercado Pago aunque haya elegido tarjeta
-  const pagaConTarjeta = solicitud.formaPago === 'TARJETA' && montoTotal > 0;
-  let estado: EstadoCompra = pagaConTarjeta ? 'PENDIENTE_PAGO' : 'RESERVADA';
-  if (montoTotal === 0) {
-    estado = 'SIN_COSTO';
-  }
+  const estado = determinarEstadoInicial(solicitud.formaPago as string, montoTotal);
   const compra: Compra = {
     codigoReserva: randomUUID().replace(/-/g, '').slice(0, 8).toUpperCase(),
     usuario: solicitud.usuario as Usuario,
@@ -263,7 +266,7 @@ export const comprarEntradas = async (
   };
   await dependencias.repositorioCompras.guardar(compra);
 
-  if (pagaConTarjeta) {
+  if (estado === 'PENDIENTE_PAGO') {
     // El mail se envía recién cuando Mercado Pago aprueba el pago (ver confirmarPago)
     const urlPago = await dependencias.pasarelaPago.crearPago({
       codigoReserva: compra.codigoReserva,
