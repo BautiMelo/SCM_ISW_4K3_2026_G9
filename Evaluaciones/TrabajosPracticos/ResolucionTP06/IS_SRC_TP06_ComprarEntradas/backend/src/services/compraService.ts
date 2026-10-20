@@ -91,11 +91,13 @@ const validarAnticipacionMaxima = (fechaVisita: Date, fechaActual: Date): void =
 
 // Valida que la fecha exista y esté dentro de la ventana de venta: desde hoy (hasta las 17:30) hasta dentro de un mes
 export const validarFechaVisita = (fechaTexto: string, fechaActual: Date): Date => {
+  // La fecha llega del body de la API: puede no ser texto
+  if (typeof fechaTexto !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(fechaTexto)) {
+    throw new CompraError('Debe indicar una fecha de visita válida (AAAA-MM-DD)');
+  }
   const fechaVisita = parsearFecha(fechaTexto);
   // Si Date "corrigió" la fecha (ej. 31/02 -> 03/03), la fecha no existe
-  const esFechaExistente = /^\d{4}-\d{2}-\d{2}$/.test(fechaTexto)
-    && fechaVisita.getDate() === Number(fechaTexto.split('-')[2]);
-  if (!esFechaExistente) {
+  if (fechaVisita.getDate() !== Number(fechaTexto.split('-')[2])) {
     throw new CompraError('Debe indicar una fecha de visita válida (AAAA-MM-DD)');
   }
 
@@ -135,7 +137,9 @@ export const validarCantidadEntradas = (cantidadEntradas: number): void => {
 };
 
 export const validarVisitantes = (visitantes: Visitante[], cantidadEntradas: number): void => {
-  if (!Array.isArray(visitantes) || visitantes.length !== cantidadEntradas) {
+  const sonVisitantesCompletos = Array.isArray(visitantes)
+    && visitantes.every((visitante) => typeof visitante === 'object' && visitante !== null);
+  if (!sonVisitantesCompletos || visitantes.length !== cantidadEntradas) {
     throw new CompraError(`Debe indicar la edad y el tipo de pase de cada uno de los ${cantidadEntradas} visitantes`);
   }
 
