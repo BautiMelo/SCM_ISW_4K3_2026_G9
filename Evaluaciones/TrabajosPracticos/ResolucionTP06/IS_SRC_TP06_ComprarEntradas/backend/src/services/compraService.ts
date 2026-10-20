@@ -26,6 +26,13 @@ const parsearFecha = (fecha: string): Date => {
   return new Date(anio, mes - 1, dia);
 };
 
+// La fecha llega del body de la API, así que puede no ser texto. Si Date "corrige" el día
+// (ej. 31/02 -> 03/03), la fecha no existe.
+const esFechaExistente = (fechaTexto: unknown): fechaTexto is string =>
+  typeof fechaTexto === 'string'
+  && /^\d{4}-\d{2}-\d{2}$/.test(fechaTexto)
+  && parsearFecha(fechaTexto).getDate() === Number(fechaTexto.split('-')[2]);
+
 const formatearFecha = (fecha: Date): string => fecha.toLocaleDateString('es-AR', {
   day: '2-digit',
   month: '2-digit',
@@ -91,15 +98,10 @@ const validarAnticipacionMaxima = (fechaVisita: Date, fechaActual: Date): void =
 
 // Valida que la fecha exista y esté dentro de la ventana de venta: desde hoy (hasta las 17:30) hasta dentro de un mes
 export const validarFechaVisita = (fechaTexto: string, fechaActual: Date): Date => {
-  // La fecha llega del body de la API: puede no ser texto
-  if (typeof fechaTexto !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(fechaTexto)) {
+  if (!esFechaExistente(fechaTexto)) {
     throw new CompraError('Debe indicar una fecha de visita válida (AAAA-MM-DD)');
   }
   const fechaVisita = parsearFecha(fechaTexto);
-  // Si Date "corrigió" la fecha (ej. 31/02 -> 03/03), la fecha no existe
-  if (fechaVisita.getDate() !== Number(fechaTexto.split('-')[2])) {
-    throw new CompraError('Debe indicar una fecha de visita válida (AAAA-MM-DD)');
-  }
 
   if (fechaVisita < inicioDelDia(fechaActual)) {
     throw new CompraError('La fecha de visita debe ser hoy o una fecha futura');
