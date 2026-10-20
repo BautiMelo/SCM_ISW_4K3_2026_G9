@@ -156,7 +156,7 @@ export const validarVisitantes = (visitantes: Visitante[], cantidadEntradas: num
 };
 
 // Las compras pendientes de pago no cuentan: si el usuario abandona Mercado Pago no queda bloqueado
-const ESTADOS_QUE_SUMAN_AL_TOPE: EstadoCompra[] = ['RESERVADA', 'PAGADA'];
+const ESTADOS_QUE_SUMAN_AL_TOPE: EstadoCompra[] = ['RESERVADA', 'PAGADA', 'SIN_COSTO'];
 
 export const validarTopeEntradasPorFecha = async (
   usuario: Usuario,
@@ -204,16 +204,24 @@ const armarResultado = (compra: Compra): ResultadoCompra => ({
   codigoReserva: compra.codigoReserva,
 });
 
-// RESERVADA (efectivo): se paga en boletería. PAGADA (tarjeta): ya se cobró por Mercado Pago.
+const describirPago = (compra: Compra): string => {
+  if (compra.estado === 'SIN_COSTO') {
+    return 'Esta compra no tiene costo';
+  }
+  const etiqueta = compra.estado === 'RESERVADA' ? 'Total a pagar en boletería' : 'Total pagado con Mercado Pago';
+  return `${etiqueta}: <strong>$${compra.montoTotal}</strong>`;
+};
+
+// RESERVADA (efectivo): se paga en boletería. PAGADA (tarjeta): ya se cobró por Mercado Pago. SIN_COSTO: no se paga.
 const armarMailConfirmacion = (compra: Compra): Mail => {
-  const esReserva = compra.estado === 'RESERVADA';
+  const esReserva = compra.estado !== 'PAGADA';
   return {
     destinatario: compra.usuario.email,
     asunto: `EcoHarmony Park - Confirmación de tu ${esReserva ? 'reserva' : 'compra'}`,
     cuerpo: `
       <h2>¡Gracias por tu ${esReserva ? 'reserva' : 'compra'}, ${compra.usuario.nombre}!</h2>
       <p>${esReserva ? 'Reservaste' : 'Compraste'} <strong>${describirEntradas(compra)}</strong>.</p>
-      <p>${esReserva ? 'Total a pagar en boletería' : 'Total pagado con Mercado Pago'}: <strong>$${compra.montoTotal}</strong></p>
+      <p>${describirPago(compra)}</p>
       <p>Código de reserva: <strong>${compra.codigoReserva}</strong> (presentalo en el ingreso al parque)</p>`,
   };
 };
@@ -236,7 +244,13 @@ export const comprarEntradas = async (
   );
 
   // A partir de acá la solicitud ya cumple todos los criterios de aceptación
-  const pagaConTarjeta = solicitud.formaPago === 'TARJETA';
+  const montoTotal = calcularMontoTotal(solicitud.visitantes);
+  // Con monto $0 no hay nada que cobrar: no se va a Mercado Pago aunque haya elegido tarjeta
+  const pagaConTarjeta = solicitud.formaPago === 'TARJETA' && montoTotal > 0;
+  let estado: EstadoCompra = pagaConTarjeta ? 'PENDIENTE_PAGO' : 'RESERVADA';
+  if (montoTotal === 0) {
+    estado = 'SIN_COSTO';
+  }
   const compra: Compra = {
     codigoReserva: randomUUID().replace(/-/g, '').slice(0, 8).toUpperCase(),
     usuario: solicitud.usuario as Usuario,
@@ -244,8 +258,8 @@ export const comprarEntradas = async (
     cantidadEntradas: solicitud.cantidadEntradas,
     visitantes: solicitud.visitantes,
     formaPago: solicitud.formaPago as string,
-    montoTotal: calcularMontoTotal(solicitud.visitantes),
-    estado: pagaConTarjeta ? 'PENDIENTE_PAGO' : 'RESERVADA',
+    montoTotal,
+    estado,
   };
   await dependencias.repositorioCompras.guardar(compra);
 

@@ -19,7 +19,8 @@ export interface SolicitudCompra {
 }
 
 // RESERVADA: paga en boletería (efectivo). PENDIENTE_PAGO: esperando a Mercado Pago. PAGADA: tarjeta aprobada.
-export type EstadoCompra = 'RESERVADA' | 'PENDIENTE_PAGO' | 'PAGADA';
+// SIN_COSTO: monto $0 (todos los visitantes de hasta 3 años), no hay nada que cobrar.
+export type EstadoCompra = 'RESERVADA' | 'PENDIENTE_PAGO' | 'PAGADA' | 'SIN_COSTO';
 
 export interface Compra {
   codigoReserva: string;
