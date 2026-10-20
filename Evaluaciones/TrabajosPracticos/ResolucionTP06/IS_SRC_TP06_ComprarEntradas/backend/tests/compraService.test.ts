@@ -1,5 +1,5 @@
 import {
-  calcularMontoTotal, comprarEntradas, confirmarPago, obtenerFechasDisponibles, validarDiaApertura, validarFechaVisita,
+  calcularMontoTotal, comprarEntradas, confirmarPago, consultarEstadoPago, obtenerFechasDisponibles, validarDiaApertura, validarFechaVisita,
 } from '../src/services/compraService';
 import { crearRepositorioComprasEnMemoria } from '../src/data/repositorioCompras';
 import { EstadoCompra, SolicitudCompra } from '../src/models/compra';
@@ -29,6 +29,7 @@ const crearDependencias = (fechaActual: Date = FECHA_ACTUAL) => ({
   pasarelaPago: {
     crearPago: jest.fn().mockResolvedValue(URL_PAGO_MP),
     consultarPago: jest.fn(),
+    buscarPagoPorReserva: jest.fn(),
   },
   repositorioCompras: crearRepositorioComprasEnMemoria(),
 });
@@ -452,19 +453,20 @@ describe('comprarEntradas', () => {
   });
 });
 
+// Deja una compra con tarjeta pendiente de pago y configura qué responde Mercado Pago al consultar el pago.
+// La usan los tests de confirmarPago y los de consultarEstadoPago
+const prepararCompraConTarjeta = async (estadoPago: string, codigoDelPago?: string) => {
+  const dependencias = crearDependencias();
+  const { codigoReserva } = await comprarEntradas(crearSolicitudValida({ formaPago: 'TARJETA' }), dependencias);
+  dependencias.pasarelaPago.consultarPago.mockResolvedValue({
+    estado: estadoPago,
+    codigoReserva: codigoDelPago ?? codigoReserva,
+  });
+  return { dependencias, codigoReserva };
+};
+
 describe('confirmarPago (vuelta de Mercado Pago)', () => {
   const ID_PAGO = '987654321';
-
-  // Deja una compra con tarjeta pendiente de pago y configura qué responde Mercado Pago al consultar el pago
-  const prepararCompraConTarjeta = async (estadoPago: string, codigoDelPago?: string) => {
-    const dependencias = crearDependencias();
-    const { codigoReserva } = await comprarEntradas(crearSolicitudValida({ formaPago: 'TARJETA' }), dependencias);
-    dependencias.pasarelaPago.consultarPago.mockResolvedValue({
-      estado: estadoPago,
-      codigoReserva: codigoDelPago ?? codigoReserva,
-    });
-    return { dependencias, codigoReserva };
-  };
 
   test('con el pago aprobado la compra queda PAGADA, informa cantidad y fecha y envía el mail', async () => {
     const { dependencias, codigoReserva } = await prepararCompraConTarjeta('approved');
@@ -510,6 +512,100 @@ describe('confirmarPago (vuelta de Mercado Pago)', () => {
     await confirmarPago(codigoReserva, ID_PAGO, dependencias);
 
     expect(dependencias.enviadorMail.enviar).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('consultarEstadoPago (polling del frontend mientras se paga en Mercado Pago)', () => {
+  // Simula lo que devuelve la búsqueda en Mercado Pago por external_reference
+  const simularPagoEnMercadoPago = (
+    dependencias: ReturnType<typeof crearDependencias>,
+    estado: string,
+    codigo: string,
+  ) => dependencias.pasarelaPago.buscarPagoPorReserva.mockResolvedValue({ estado, codigoReserva: codigo });
+
+  test('con el pago todavía sin aprobar responde PENDIENTE_PAGO y no envía mail', async () => {
+    const { dependencias, codigoReserva } = await prepararCompraConTarjeta('pending');
+    simularPagoEnMercadoPago(dependencias, 'pending', codigoReserva);
+
+    const respuesta = await consultarEstadoPago(codigoReserva, dependencias);
+
+    expect(respuesta.estado).toBe('PENDIENTE_PAGO');
+    expect(respuesta.pagoMercadoPago).toBe('pending');
+    expect(dependencias.enviadorMail.enviar).not.toHaveBeenCalled();
+    expect((await dependencias.repositorioCompras.buscarPorCodigo(codigoReserva))?.estado).toBe('PENDIENTE_PAGO');
+  });
+
+  test('sin ningún pago creado todavía responde PENDIENTE_PAGO sin estado de Mercado Pago', async () => {
+    const { dependencias, codigoReserva } = await prepararCompraConTarjeta('pending');
+    dependencias.pasarelaPago.buscarPagoPorReserva.mockRejectedValue(new Error('no hay pagos'));
+
+    const respuesta = await consultarEstadoPago(codigoReserva, dependencias);
+
+    expect(respuesta.estado).toBe('PENDIENTE_PAGO');
+    expect(respuesta.pagoMercadoPago).toBe('');
+  });
+
+  test('cuando Mercado Pago ya aprobó el pago queda PAGADA, informa el resultado y envía el mail', async () => {
+    const { dependencias, codigoReserva } = await prepararCompraConTarjeta('approved');
+    simularPagoEnMercadoPago(dependencias, 'approved', codigoReserva);
+
+    const respuesta = await consultarEstadoPago(codigoReserva, dependencias);
+
+    expect(respuesta.estado).toBe('PAGADA');
+    expect(respuesta.resultado?.mensaje).toBe('Compra realizada con éxito: 2 entradas para el 14/10/2026');
+    expect(dependencias.enviadorMail.enviar).toHaveBeenCalledTimes(1);
+    expect((await dependencias.repositorioCompras.buscarPorCodigo(codigoReserva))?.estado).toBe('PAGADA');
+  });
+
+  test('con el pago rechazado sigue PENDIENTE_PAGO (el usuario puede reintentar) y no envía mail', async () => {
+    const { dependencias, codigoReserva } = await prepararCompraConTarjeta('rejected');
+    simularPagoEnMercadoPago(dependencias, 'rejected', codigoReserva);
+
+    const respuesta = await consultarEstadoPago(codigoReserva, dependencias);
+
+    expect(respuesta.estado).toBe('PENDIENTE_PAGO');
+    expect(respuesta.pagoMercadoPago).toBe('rejected');
+    expect(dependencias.enviadorMail.enviar).not.toHaveBeenCalled();
+  });
+
+  test('una compra ya PAGADA no vuelve a consultar Mercado Pago ni re-envía el mail', async () => {
+    const { dependencias, codigoReserva } = await prepararCompraConTarjeta('approved');
+    simularPagoEnMercadoPago(dependencias, 'approved', codigoReserva);
+    await consultarEstadoPago(codigoReserva, dependencias);
+
+    await consultarEstadoPago(codigoReserva, dependencias);
+
+    expect(dependencias.pasarelaPago.buscarPagoPorReserva).toHaveBeenCalledTimes(1);
+    expect(dependencias.enviadorMail.enviar).toHaveBeenCalledTimes(1);
+  });
+
+  test('el último pago gana: un reintento después de un rechazo queda PAGADA', async () => {
+    const { dependencias, codigoReserva } = await prepararCompraConTarjeta('rejected');
+    // La búsqueda devuelve el pago más nuevo primero: 1er poll ve el rechazo, 2do el reintento aprobado
+    dependencias.pasarelaPago.buscarPagoPorReserva
+      .mockResolvedValueOnce({ estado: 'rejected', codigoReserva: codigoReserva })
+      .mockResolvedValue({ estado: 'approved', codigoReserva: codigoReserva });
+    await consultarEstadoPago(codigoReserva, dependencias); // primer intento rechazado
+
+    const respuesta = await consultarEstadoPago(codigoReserva, dependencias);
+
+    expect(respuesta.estado).toBe('PAGADA');
+  });
+
+  test('una compra en efectivo (RESERVADA) responde RESERVADA sin consultar Mercado Pago', async () => {
+    const dependencias = crearDependencias();
+    const resultado = await comprarEntradas(crearSolicitudValida(), dependencias);
+
+    const respuesta = await consultarEstadoPago(resultado.codigoReserva, dependencias);
+
+    expect(respuesta.estado).toBe('RESERVADA');
+    expect(respuesta.resultado?.codigoReserva).toBe(resultado.codigoReserva);
+    expect(dependencias.pasarelaPago.buscarPagoPorReserva).not.toHaveBeenCalled();
+  });
+
+  test('con un código de reserva inexistente falla', async () => {
+    await expect(consultarEstadoPago('NOEXISTE', crearDependencias()))
+      .rejects.toThrow('No existe una compra con el código NOEXISTE');
   });
 });
 

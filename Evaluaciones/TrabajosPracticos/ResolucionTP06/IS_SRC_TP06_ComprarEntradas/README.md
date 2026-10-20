@@ -57,6 +57,31 @@ npm run dev               # http://localhost:5173
 
 Usuario de prueba: `visitante@ecoharmony.test` / `visitante123`.
 
+## 3. Probar desde un celular en la misma red
+
+No hace falta exportar ni instalar la aplicación en el celular: es una web y se abre desde el navegador. La PC y el celular deben estar conectados a la misma red local; por ejemplo, la PC por Ethernet y el celular por Wi-Fi, siempre que el router permita la comunicación entre ambos.
+
+1. En la PC, ejecutá `ipconfig` y buscá la dirección IPv4 de la conexión Ethernet activa (por ejemplo, `192.168.100.107`). No uses `localhost` ni la dirección de un adaptador desconectado.
+2. En `frontend/.env`, reemplazá `localhost` por esa IPv4:
+
+   ```env
+   VITE_API_URL=http://192.168.100.107:4000
+   ```
+
+3. En `backend/.env`, configurá la dirección del frontend con la misma IPv4:
+
+   ```env
+   FRONTEND_URL=http://192.168.100.107:5173
+   ```
+
+   Esta URL se utiliza para volver a la aplicación después del checkout de Mercado Pago. Conservá el resto de las variables y secretos de cada archivo `.env`.
+4. Iniciá o reiniciá el backend (`npm run dev` desde `backend`) y el frontend escuchando en la red local (`npm run dev -- --host 0.0.0.0` desde `frontend`). Vite debe mostrar una dirección de red; el frontend utiliza el puerto `5173` y la API el `4000`.
+5. Desde el navegador del celular, abrí `http://192.168.100.107:5173`, reemplazando la dirección de ejemplo por la IPv4 de la PC.
+
+Si el celular no puede conectarse, comprobá que ambos dispositivos estén en la misma red, que la red Wi-Fi no tenga aislamiento de clientes y que el Firewall de Windows permita conexiones privadas a Node.js o a los puertos `5173` y `4000`.
+
+**Mercado Pago:** esta configuración sirve para probar la app y abrir el checkout desde el celular, pero la dirección `192.168.x.x` solo es accesible dentro de la red local. Mercado Pago no puede acceder a ella desde Internet para regresar automáticamente a la app. Para probar el retorno desde el checkout se necesita exponer el frontend mediante una URL pública HTTPS y configurar esa URL en `FRONTEND_URL`. Además, los navegadores móviles pueden abrir Mercado Pago en una pestaña o bloquear la apertura inicial; si ocurre, usá el botón **Abrir Mercado Pago** de la pantalla de espera.
+
 ## API
 
 | Método | Ruta | Auth | Descripción |

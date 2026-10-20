@@ -41,5 +41,18 @@ export const crearPasarelaMercadoPago = (accessToken: string, frontendUrl: strin
       const pago = await new Payment(obtenerCliente()).get({ id: idPago });
       return { estado: pago.status ?? '', codigoReserva: pago.external_reference ?? '' };
     },
+
+    // El polling del frontend pregunta por el último pago asociado a la preferencia (external_reference):
+    // si el usuario reintenta después de un rechazo, el pago nuevo con la misma referencia es el que vale
+    buscarPagoPorReserva: async (codigoReserva) => {
+      const busqueda = await new Payment(obtenerCliente()).search({
+        options: { external_reference: codigoReserva, sort: 'date_created', criteria: 'desc' },
+      });
+      const pago = busqueda.results?.[0];
+      if (!pago) {
+        throw new Error(`Todavía no hay un pago de Mercado Pago para el código ${codigoReserva}`);
+      }
+      return { estado: pago.status ?? '', codigoReserva: pago.external_reference ?? '' };
+    },
   };
 };

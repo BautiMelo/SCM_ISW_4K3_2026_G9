@@ -15,6 +15,8 @@ export const crearCompraRoute = (
   router.get('/fechas-disponibles', compraController.fechasDisponibles);
   router.post('/', autenticar, compraController.comprar);
   router.post('/:codigoReserva/confirmar-pago', autenticar, compraController.confirmarPago);
+  // Polling del frontend mientras se paga en Mercado Pago
+  router.get('/:codigoReserva/estado', autenticar, compraController.estadoPago);
 
   return router;
 };
