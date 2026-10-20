@@ -2,7 +2,7 @@ import {
   calcularMontoTotal, comprarEntradas, confirmarPago, consultarEstadoPago, obtenerFechasDisponibles, validarDiaApertura, validarFechaVisita,
 } from '../src/services/compraService';
 import { crearRepositorioComprasEnMemoria } from '../src/data/repositorioCompras';
-import { EstadoCompra, SolicitudCompra } from '../src/models/compra';
+import { EstadoCompra, SolicitudCompra, Visitante } from '../src/models/compra';
 
 // Fecha y hora actual fijas para que los tests no dependan de cuándo se corren: martes 13/10/2026 10:00
 const FECHA_ACTUAL = new Date(2026, 9, 13, 10, 0);
@@ -93,6 +93,18 @@ describe('comprarEntradas', () => {
 
     test('comprar con una fecha de visita con formato inválido falla', async () => {
       const solicitud = crearSolicitudValida({ fechaVisita: '14/10/2026' });
+
+      await expect(comprarEntradas(solicitud, crearDependencias()))
+        .rejects.toThrow('Debe indicar una fecha de visita válida (AAAA-MM-DD)');
+    });
+
+    // Tipo de dato: el frontend no lo permite, pero la API puede recibir cualquier JSON
+    test.each([
+      ['sin enviar', undefined],
+      ['como número', 20261014],
+      ['como objeto', { anio: 2026, mes: 10, dia: 14 }],
+    ])('comprar con la fecha de visita %s (no es texto) falla', async (_caso, fechaVisita) => {
+      const solicitud = crearSolicitudValida({ fechaVisita: fechaVisita as unknown as string });
 
       await expect(comprarEntradas(solicitud, crearDependencias()))
         .rejects.toThrow('Debe indicar una fecha de visita válida (AAAA-MM-DD)');
@@ -317,6 +329,25 @@ describe('comprarEntradas', () => {
 
       await expect(comprarEntradas(solicitud, crearDependencias()))
         .rejects.toThrow('Debe indicar la edad y el tipo de pase de cada uno de los 3 visitantes');
+    });
+
+    test.each([
+      ['vacío (null)', null],
+      ['como texto', '30 REGULAR'],
+    ])('comprar con un visitante %s falla', async (_caso, visitanteInvalido) => {
+      const solicitud = crearSolicitudValida({
+        visitantes: [{ edad: 30, tipoPase: 'REGULAR' }, visitanteInvalido as unknown as Visitante],
+      });
+
+      await expect(comprarEntradas(solicitud, crearDependencias()))
+        .rejects.toThrow('Debe indicar la edad y el tipo de pase de cada uno de los 2 visitantes');
+    });
+
+    test('comprar con los visitantes como texto en lugar de una lista falla', async () => {
+      const solicitud = crearSolicitudValida({ visitantes: '30,8' as unknown as Visitante[] });
+
+      await expect(comprarEntradas(solicitud, crearDependencias()))
+        .rejects.toThrow('Debe indicar la edad y el tipo de pase de cada uno de los 2 visitantes');
     });
 
     test('comprar sin indicar la edad de un visitante falla', async () => {
