@@ -418,6 +418,17 @@ describe('comprarEntradas', () => {
       expect(dependencias.enviadorMail.enviar).not.toHaveBeenCalled();
     });
 
+    test('si Mercado Pago falla, la compra no queda registrada ni se envía mail', async () => {
+      const dependencias = crearDependencias();
+      dependencias.pasarelaPago.crearPago.mockRejectedValue(new Error('Mercado Pago no responde'));
+
+      await expect(comprarEntradas(crearSolicitudValida({ formaPago: 'TARJETA' }), dependencias))
+        .rejects.toThrow('Mercado Pago no responde');
+
+      expect(await dependencias.repositorioCompras.buscarPorUsuarioYFecha(1, '2026-10-14')).toEqual([]);
+      expect(dependencias.enviadorMail.enviar).not.toHaveBeenCalled();
+    });
+
     test('la compra en efectivo no crea un pago en Mercado Pago', async () => {
       const dependencias = crearDependencias();
 
