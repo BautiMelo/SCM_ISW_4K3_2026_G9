@@ -264,18 +264,19 @@ export const comprarEntradas = async (
     montoTotal,
     estado,
   };
-  await dependencias.repositorioCompras.guardar(compra);
-
   if (estado === 'PENDIENTE_PAGO') {
+    // Primero Mercado Pago y después se guarda: si Mercado Pago falla no queda una compra huérfana.
     // El mail se envía recién cuando Mercado Pago aprueba el pago (ver confirmarPago)
     const urlPago = await dependencias.pasarelaPago.crearPago({
       codigoReserva: compra.codigoReserva,
       montoTotal: compra.montoTotal,
       descripcion: `${compra.cantidadEntradas} entradas EcoHarmony Park para el ${formatearFecha(fechaVisita)}`,
     });
+    await dependencias.repositorioCompras.guardar(compra);
     return { ...armarResultado(compra), urlPago };
   }
 
+  await dependencias.repositorioCompras.guardar(compra);
   await dependencias.enviadorMail.enviar(armarMailConfirmacion(compra));
   return armarResultado(compra);
 };
