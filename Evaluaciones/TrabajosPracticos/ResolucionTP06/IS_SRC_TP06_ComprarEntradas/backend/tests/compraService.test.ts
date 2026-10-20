@@ -428,6 +428,56 @@ describe('comprarEntradas', () => {
     });
   });
 
+  describe('compra sin costo (todos los visitantes de hasta 3 años)', () => {
+    const solicitarSinCosto = (formaPago: string) => crearSolicitudValida({
+      formaPago,
+      visitantes: [{ edad: 2, tipoPase: 'REGULAR' }, { edad: 3, tipoPase: 'VIP' }],
+    });
+
+    test('con tarjeta no crea un pago en Mercado Pago (no se cobra $0)', async () => {
+      const dependencias = crearDependencias();
+
+      const resultado = await comprarEntradas(solicitarSinCosto('TARJETA'), dependencias);
+
+      expect(resultado.montoTotal).toBe(0);
+      expect(resultado.urlPago).toBeUndefined();
+      expect(dependencias.pasarelaPago.crearPago).not.toHaveBeenCalled();
+    });
+
+    test.each(['TARJETA', 'EFECTIVO'])('pagando con %s queda registrada como SIN_COSTO', async (formaPago) => {
+      const dependencias = crearDependencias();
+
+      const resultado = await comprarEntradas(solicitarSinCosto(formaPago), dependencias);
+
+      const compra = await dependencias.repositorioCompras.buscarPorCodigo(resultado.codigoReserva);
+      expect(compra?.estado).toBe('SIN_COSTO');
+    });
+
+    test('con tarjeta envía el mail de confirmación al instante, indicando que no tiene costo', async () => {
+      const dependencias = crearDependencias();
+
+      await comprarEntradas(solicitarSinCosto('TARJETA'), dependencias);
+
+      expect(dependencias.enviadorMail.enviar).toHaveBeenCalledTimes(1);
+      const mail = dependencias.enviadorMail.enviar.mock.calls[0][0];
+      expect(mail.asunto).toBe('EcoHarmony Park - Confirmación de tu reserva');
+      expect(mail.cuerpo).toContain('Esta compra no tiene costo');
+    });
+
+    test('suma al máximo de 10 entradas por fecha (los menores de 3 años también son entradas)', async () => {
+      const dependencias = crearDependencias();
+      await comprarEntradas(solicitarSinCosto('TARJETA'), dependencias);
+
+      const nueveEntradas = crearSolicitudValida({
+        cantidadEntradas: 9,
+        visitantes: Array.from({ length: 9 }, () => ({ edad: 25, tipoPase: 'REGULAR' })),
+      });
+
+      await expect(comprarEntradas(nueveEntradas, dependencias))
+        .rejects.toThrow('Ya tenés 2 para el 14/10/2026: podés comprar hasta 8 más');
+    });
+  });
+
   test('la compra en efectivo queda registrada como RESERVADA', async () => {
     const dependencias = crearDependencias();
 
