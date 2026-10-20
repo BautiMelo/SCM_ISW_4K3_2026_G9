@@ -529,6 +529,23 @@ describe('comprarEntradas', () => {
       expect(mail.cuerpo).toContain(resultado.codigoReserva);
     });
 
+    test('cuando el mail se envía, el resultado lo informa', async () => {
+      const resultado = await comprarEntradas(crearSolicitudValida(), crearDependencias());
+
+      expect(resultado.mailEnviado).toBe(true);
+    });
+
+    test('si falla el envío del mail, la compra igual queda RESERVADA e informa que el mail no se envió', async () => {
+      const dependencias = crearDependencias();
+      dependencias.enviadorMail.enviar.mockRejectedValue(new Error('Gmail no responde'));
+
+      const resultado = await comprarEntradas(crearSolicitudValida(), dependencias);
+
+      expect(resultado.mailEnviado).toBe(false);
+      const compra = await dependencias.repositorioCompras.buscarPorCodigo(resultado.codigoReserva);
+      expect(compra?.estado).toBe('RESERVADA');
+    });
+
     test('la compra genera un código de reserva', async () => {
       const resultado = await comprarEntradas(crearSolicitudValida(), crearDependencias());
 
@@ -573,6 +590,16 @@ describe('confirmarPago (vuelta de Mercado Pago)', () => {
     expect(mail.destinatario).toBe('ana@mail.com');
     expect(mail.asunto).toBe('EcoHarmony Park - Confirmación de tu compra');
     expect(mail.cuerpo).toContain(codigoReserva);
+  });
+
+  test('si falla el envío del mail, la compra igual queda PAGADA e informa que el mail no se envió', async () => {
+    const { dependencias, codigoReserva } = await prepararCompraConTarjeta('approved');
+    dependencias.enviadorMail.enviar.mockRejectedValue(new Error('Gmail no responde'));
+
+    const resultado = await confirmarPago(codigoReserva, ID_PAGO, dependencias);
+
+    expect(resultado.mailEnviado).toBe(false);
+    expect((await dependencias.repositorioCompras.buscarPorCodigo(codigoReserva))?.estado).toBe('PAGADA');
   });
 
   test('con el pago rechazado falla y no envía mail', async () => {

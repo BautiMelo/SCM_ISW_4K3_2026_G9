@@ -40,6 +40,7 @@ export interface ResultadoCompra {
   montoTotal: number;
   codigoReserva: string;
   urlPago?: string; // solo si paga con tarjeta
+  mailEnviado?: boolean; // presente cuando en esta operación se intentó enviar el mail de confirmación
 }
 
 export interface Mail {
