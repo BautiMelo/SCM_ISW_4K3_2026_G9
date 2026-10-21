@@ -50,7 +50,14 @@ export const ResultadoPage = ({ resultado: resultadoInicial, onVolver }: Resulta
       <h2>{resultado.mensaje}</h2>
       <p>Total: <strong>${resultado.montoTotal.toLocaleString('es-AR')}</strong></p>
       <p>Código de reserva: <strong>{resultado.codigoReserva}</strong></p>
-      <p className="ayuda">Te enviamos un mail de confirmación con estos datos.</p>
+      {resultado.mailEnviado === false ? (
+        <p className="error">
+          Tu compra quedó registrada, pero no pudimos enviarte el mail de confirmación.
+          Guardá el código de reserva: lo vas a necesitar al ingresar.
+        </p>
+      ) : (
+        <p className="ayuda">Te enviamos un mail de confirmación con estos datos.</p>
+      )}
       <button type="button" className="boton" onClick={onVolver}>Hacer otra compra</button>
     </div>
   );

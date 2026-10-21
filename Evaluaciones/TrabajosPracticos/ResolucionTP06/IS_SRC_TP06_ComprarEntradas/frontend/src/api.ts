@@ -19,6 +19,7 @@ export interface ResultadoCompra {
   montoTotal: number;
   codigoReserva: string;
   urlPago?: string;
+  mailEnviado?: boolean; // false si la compra se registró pero el mail de confirmación no salió
 }
 
 // sessionStorage: la sesión sobrevive a la ida y vuelta a Mercado Pago en la misma pestaña
@@ -83,9 +84,9 @@ export const confirmarPago = (codigoReserva: string, idPago: string): Promise<Re
 
 // Polling mientras se paga en la ventana de Mercado Pago (que puede no volver a la app en local)
 export interface EstadoConsulta {
-  estado: 'RESERVADA' | 'PENDIENTE_PAGO' | 'PAGADA';
+  estado: 'RESERVADA' | 'PENDIENTE_PAGO' | 'PAGADA' | 'SIN_COSTO';
   pagoMercadoPago?: string; // '', pending, rejected, approved...
-  resultado?: ResultadoCompra; // presente cuando la compra ya se cerró (RESERVADA o PAGADA)
+  resultado?: ResultadoCompra; // presente cuando la compra ya se cerró (RESERVADA, PAGADA o SIN_COSTO)
 }
 
 export const consultarEstadoPago = (codigoReserva: string): Promise<EstadoConsulta> =>
