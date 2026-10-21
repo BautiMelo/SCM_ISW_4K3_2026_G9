@@ -1,7 +1,7 @@
 # TP06 — TDD: User Story "Comprar entradas"
 
 **Grupo 9 — Ingeniería y Calidad de Software 2026 — 4K3**
-Código: [`IS_SRC_TP06_ComprarEntradas/`](IS_SRC_TP06_ComprarEntradas/) · Rama: `US8_TP6`
+Código: [`IS_SRC_TP06_ComprarEntradas/`](IS_SRC_TP06_ComprarEntradas/) · Ramas: `US8_TP6` (ciclos 1 a 19) y `US8_TP6_ciclos20a24` (ciclos 20 a 24)
 
 ## 1. User Story
 
@@ -20,7 +20,7 @@ Código: [`IS_SRC_TP06_ComprarEntradas/`](IS_SRC_TP06_ComprarEntradas/) · Rama:
 
 ## 2. Enfoque TDD aplicado
 
-Cada criterio se construyó con el ciclo **Red → Green → Refactor**, y **cada paso es un commit** de la rama `US8_TP6`, así el ciclo se puede seguir en el historial:
+Cada criterio se construyó con el ciclo **Red → Green → Refactor**, y **cada paso es un commit** con prefijo `Red/`, `Green/` o `Refactor/`, así el ciclo se puede seguir en el historial:
 
 - **Red:** se escribe un test que expresa el criterio y se corre para verlo fallar. El fallo tiene que ser por la razón esperada, por ejemplo "la compra se resolvió cuando debía rechazarse".
 - **Green:** se escribe el código mínimo para que el test pase, sin romper los anteriores.
@@ -59,6 +59,22 @@ El ciclo 5b muestra el valor de pensar valores límite antes de escribir el cód
 
 A diferencia de los anteriores, el ciclo 19 se resolvió en dos commits: `4a567b7` concentra Red, Green y Refactor del backend (tests, integración y servicio, con su refactor aplicado al mismo tiempo), y `328de8b` la pantalla de espera del frontend (popup + polling cada 2 segundos).
 
+Los ciclos 20 a 24 surgieron de revisar el código contra el plan de pruebas del documento de entrega (rama `US8_TP6_ciclos20a24`):
+
+| # | Regla | Red (test que falla) | Green (código mínimo) | Refactor |
+|---|---|---|---|---|
+| 20 | Nota TP6 — tipos de dato | `394ccd4` una fecha que no es texto y un visitante `null` rompían con `TypeError` (500) | `6bfd424` los rechaza con `CompraError` (400) | `8d919ac` extrae `esFechaExistente` |
+| 21 | Compra de $0 con tarjeta | `95a8ce8` se creaba un pago de $0 en Mercado Pago y la compra no sumaba al tope | `e46d691` estado `SIN_COSTO`, mail al instante y suma al tope | `7913f68` extrae `determinarEstadoInicial` |
+| 22 | Falla de Mercado Pago | `3f6734a` quedaba una compra `PENDIENTE_PAGO` huérfana | `922fcbb` se crea el pago antes de guardar | — |
+| 23 | Falla del mail | `8dcb357` con la compra ya guardada se respondía 500 | `5d0b14c` la compra se mantiene y el resultado informa `mailEnviado: false` | `aab37e5` extrae `enviarConfirmacion` |
+| 24 | Adaptador de Mercado Pago | `4038184` no se podía testear sin llamar a Mercado Pago | `d9dfd42` `armarPreferencia` pura y `crearPasarelaConClientes` con el SDK inyectado | — |
+| 24b | Adaptador de mail | `c7ce3eb` no se podía testear sin mandar mails | `62ba9e5` `normalizarCredencialesGmail` y `crearEnviadorMailConTransporte` | — |
+
+- En el ciclo 20, el test "visitantes como texto en lugar de una lista" pasó desde el principio (`Array.isArray` ya lo rechazaba); quedó como cobertura del tipo de dato.
+- El commit Red del ciclo 23 agrega el campo opcional `mailEnviado` a `ResultadoCompra` junto con los tests, para que fallen por comportamiento y no por compilación.
+- En los ciclos 24 y 24b el Red falla porque las funciones todavía no existen, como en el ciclo 1. El Green ya separa el armado del pedido del envío, así que no hay Refactor aparte.
+- El frontend se adaptó en `b246efc`: estado `SIN_COSTO` y aviso cuando el mail no se pudo enviar.
+
 ## 3. Pruebas de usuario de la US → tests automatizados
 
 | Prueba de usuario | Test(s) |
@@ -69,7 +85,7 @@ A diferencia de los anteriores, el ciclo 19 se resolvió en dos commits: `4a567b
 | Comprar más de 10 entradas **(falla)** | `comprar más de 10 entradas falla` (+ límites: 10 pasa, 0 falla) y, sumando compras anteriores, `con 8 entradas ya reservadas para esa fecha, comprar 3 más falla` |
 | Pagar en la ventana de Mercado Pago y no volver a la app (checkout en localhost, ciclo 19) | `cuando Mercado Pago ya aprobó el pago queda PAGADA, informa el resultado y envía el mail` + `con el pago todavía sin aprobar responde PENDIENTE_PAGO y no envía mail` + `una compra ya PAGADA no vuelve a consultar Mercado Pago ni re-envía el mail` (el frontend consulta cada 2 segundos) |
 
-En total hay **83 tests**: 74 del servicio de compra y 9 de la API. El servicio `compraService.ts` tiene 100% de cobertura (`npm run test:coverage`).
+En total hay **113 tests**: 89 del servicio de compra, 9 de la API, 11 del adaptador de Mercado Pago y 4 del adaptador de mail. El servicio `compraService.ts` tiene 100% de cobertura (`npm run test:coverage`).
 
 ## 4. Decisiones de diseño
 
@@ -77,10 +93,10 @@ En total hay **83 tests**: 74 del servicio de compra y 9 de la API. El servicio 
 `comprarEntradas(solicitud, dependencias)` en `backend/src/services/compraService.ts` concentra todos los criterios de aceptación. No conoce Express, ni Gmail, ni Mercado Pago. El controller HTTP solo traduce request/response.
 
 **4.2 Función principal + funciones auxiliares**, siguiendo el formato de la guía TDD de la cátedra (`inscribirseAActividad` + `validarFecha`, ...).
-La función principal es `comprarEntradas`, que valida y después registra, cobra y notifica. Para el pago con tarjeta hay dos funciones principales más: `confirmarPago` (cuando el usuario vuelve del checkout a la app) y `consultarEstadoPago` (cuando el frontend consulta el estado, ciclo 19). Las auxiliares son `validarUsuario`, `validarFormaPago`, `validarFechaVisita` (que usa `validarHorarioCompraMismoDia` y `validarAnticipacionMaxima`), `validarDiaApertura`, `validarCantidadEntradas`, `validarVisitantes`, `validarTopeEntradasPorFecha` y `calcularMontoTotal`; `aplicarPagoAprobado` comparte la confirmación entre `confirmarPago` y el polling. Cada una tiene una única responsabilidad y se exporta para poder probarla aislada (las que dependen de efectos externos se inyectan, ver 4.4).
+La función principal es `comprarEntradas`, que valida y después registra, cobra y notifica. Para el pago con tarjeta hay dos funciones principales más: `confirmarPago` (cuando el usuario vuelve del checkout a la app) y `consultarEstadoPago` (cuando el frontend consulta el estado, ciclo 19). Las auxiliares son `validarUsuario`, `validarFormaPago`, `validarFechaVisita` (que usa `validarHorarioCompraMismoDia` y `validarAnticipacionMaxima`), `validarDiaApertura`, `validarCantidadEntradas`, `validarVisitantes`, `validarTopeEntradasPorFecha`, `calcularMontoTotal` y `determinarEstadoInicial`; `aplicarPagoAprobado` comparte la confirmación entre `confirmarPago` y el polling, y `enviarConfirmacion` envía el mail sin lanzar si falla. Cada una tiene una única responsabilidad y se exporta para poder probarla aislada (las que dependen de efectos externos se inyectan, ver 4.4).
 
 **4.3 Errores de negocio con mensaje para el usuario.**
-Cada criterio incumplido lanza un `CompraError` con un mensaje claro ("La cantidad de entradas debe ser un número entero entre 1 y 10"). La API lo traduce a `400 { mensaje }`, y el frontend muestra ese mensaje tal cual. Cualquier otro error es una falla técnica: se responde `500` sin exponer detalles internos.
+Cada criterio incumplido lanza un `CompraError` con un mensaje claro ("La cantidad de entradas debe ser un número entero entre 1 y 10"). La API lo traduce a `400 { mensaje }`, y el frontend muestra ese mensaje tal cual. Un dato con tipo inválido (una fecha que no es texto, un visitante `null`) también es un `CompraError`: la nota del TP 6 pide probarlo aunque el frontend no lo permita, y la API recibe cualquier JSON (ciclo 20). Cualquier otro error, como una falla de Mercado Pago, es técnico: se responde `500` sin exponer detalles internos.
 
 **4.4 Inyección de dependencias para poder testear sin efectos reales.**
 Las dependencias externas se pasan como parámetro (`DependenciasCompra`):
@@ -104,7 +120,7 @@ La fecha viaja como texto `AAAA-MM-DD` y se interpreta en hora local. `new Date(
 El PO pidió que los días cerrados aparezcan deshabilitados en el calendario. El `<input type="date">` nativo no permite deshabilitar días puntuales, así que el frontend tiene un calendario propio (`components/Calendario.tsx`). Para que las reglas no queden duplicadas, el frontend no sabe cuáles son los días cerrados: se los pide al backend (`GET /compras/fechas-disponibles`), que los calcula con las mismas funciones que validan la compra (`obtenerFechasDisponibles`). La única regla repetida en el frontend es el máximo de 10 entradas, para avisar apenas se escribe la cantidad. El backend la vuelve a validar igual.
 
 **4.9 El tope de 10 por fecha no cuenta las compras pendientes de pago.**
-Cuentan las compras `RESERVADA` (efectivo) y `PAGADA` (tarjeta aprobada). Una compra con tarjeta que quedó `PENDIENTE_PAGO` no cuenta: si no, un usuario que abandona el checkout de Mercado Pago quedaría bloqueado para esa fecha.
+Cuentan las compras `RESERVADA` (efectivo), `PAGADA` (tarjeta aprobada) y `SIN_COSTO` (los menores de 3 años también son entradas). Una compra con tarjeta que quedó `PENDIENTE_PAGO` no cuenta: si no, un usuario que abandona el checkout de Mercado Pago quedaría bloqueado para esa fecha.
 *Limitación conocida:* si un usuario deja una compra con tarjeta pendiente, hace otra compra para la misma fecha y después paga la pendiente, puede superar las 10 entradas. Rechazarlo al confirmar el pago no sirve, porque Mercado Pago ya cobró. Por lo improbable del caso se deja documentado.
 
 **4.10 Sin base de datos.**
@@ -112,6 +128,18 @@ Usuarios y compras son mocks en memoria (`src/data`). El repositorio está detr�
 
 **4.11 Si Mercado Pago no devuelve al usuario, el pago se confirma por polling.**
 El CA 4 exige redirigir a Mercado Pago y `ResultadoPage` espera la vuelta con `payment_id` en la URL. Con credenciales de prueba y `localhost`, Mercado Pago no redirige de vuelta ni muestra el botón "Volver al sitio": el retorno automático (`auto_return`) solo funciona con una URL `https` pública. Como los webhooks están fuera de alcance (no exigen ese requisito), la confirmación de la compra no depende de la vuelta del browser: el backend consulta a Mercado Pago por `external_reference` (`buscarPagoPorReserva` en la `pasarelaPago`) y el frontend abre el checkout en una ventana emergente (así la app queda viva) y pregunta el estado cada 2 segundos (`GET /compras/:codigo/estado`, que requiere sesión). Cuando la búsqueda encuentra un pago `approved`, la compra pasa a `PAGADA` y se envía el mail por el mismo camino de la vuelta normal (4.5). Un pago `rejected` no cierra la compra: el usuario puede reintentar y el pago vigente es el más nuevo con esa referencia (la búsqueda se ordena por `date_created desc`). El abandono de checkout en localhost no requiere más manejo: una compra en espera es la misma limitación conocida del 4.9 (no impide comprar de nuevo ni suma al tope de 10 por fecha).
+
+**4.12 Una compra de $0 no pasa por Mercado Pago (ciclo 21).**
+Si todos los visitantes tienen hasta 3 años, el monto es $0. Mercado Pago rechaza un ítem de $0 y no tiene sentido cobrarlo, así que la compra queda `SIN_COSTO` aunque se haya elegido tarjeta, se envía el mail al instante y suma al tope de 10 por fecha. `determinarEstadoInicial(formaPago, montoTotal)` decide el estado: $0 → `SIN_COSTO`, tarjeta → `PENDIENTE_PAGO`, efectivo → `RESERVADA`.
+
+**4.13 Con tarjeta, primero Mercado Pago y después se guarda (ciclo 22).**
+Si la compra se guardara antes y Mercado Pago fallara, quedaría una compra `PENDIENTE_PAGO` huérfana. Por eso se crea la preferencia primero; el código de reserva se genera antes porque viaja como `external_reference`.
+
+**4.14 Si el mail falla, la compra no se revierte (ciclo 23).**
+La compra ya está registrada (y con tarjeta, cobrada). Antes se respondía 500 y el usuario reintentaba, duplicando la reserva. Ahora `enviarConfirmacion` devuelve si el mail salió, el resultado lo informa con `mailEnviado: false` y la pantalla pide guardar el código de reserva. El mail no se reintenta después.
+
+**4.15 Adaptadores testeables (ciclos 24 y 24b).**
+Cada adaptador separa una función pura que arma el pedido (`armarPreferencia`, `normalizarCredencialesGmail`) de la parte que lo envía, que recibe el cliente externo por parámetro (`crearPasarelaConClientes` con los clientes `Preference`/`Payment` del SDK, `crearEnviadorMailConTransporte` con el transporter de nodemailer). Así los ítems, montos, URLs y remitente se prueban con dobles y sin red. Se prefirió la inyección a `jest.mock` del módulo porque es la misma técnica del servicio (4.4) y no ata los tests a la forma interna del SDK.
 
 ## 5. Reglas del dominio
 
@@ -140,9 +168,12 @@ El CA 4 exige redirigir a Mercado Pago y `ResultadoPage` espera la vuelta con `p
 | Edad válida: entero entre 0 y 120 | La US no la acota |
 | La cantidad de entradas debe coincidir con la cantidad de visitantes cargados | Derivado del CA 1 ("la edad de cada visitante") |
 | Si el mes siguiente es más corto, el límite es su último día (31/01 → 28/02) | P25 no contempla el fin de mes |
+| Un dato con tipo inválido es un error de negocio (400), nunca 500 | Nota del TP 6: las validaciones de tipo van como pruebas aunque el frontend no permita el caso |
+| Una compra de $0 queda `SIN_COSTO` con cualquier forma de pago y suma al tope de 10 | No hay nada que cobrar; los menores de 3 años siguen siendo entradas (4.12) |
+| Si el mail falla no se reintenta: se avisa en pantalla con el código de reserva | La US no pide reintentos ni cola de mails (4.14) |
 
 **Fuera de alcance:** QR en el mail y webhooks de Mercado Pago. Ninguno figura en los criterios de aceptación de la US (el polling de 4.11 no los necesita: el backend consulta la API de Mercado Pago por sí mismo).
 
 ## 6. Qué no se testea automáticamente y por qué
 
-Los adaptadores reales `integraciones/mailGmail.ts` y `integraciones/mercadoPago.ts` dependen de servicios externos y de credenciales, así que se verifican a mano de punta a punta (ver `IS_SRC_TP06_ComprarEntradas/README.md`). Su lógica es mínima: traducen la interfaz del dominio a la API de cada proveedor. Toda decisión de negocio está en `compraService.ts`, que sí está cubierto al 100%.
+Desde los ciclos 24 y 24b, los adaptadores `integraciones/mercadoPago.ts` y `integraciones/mailGmail.ts` se testean con dobles del SDK y del transporter (4.15). Lo único sin test automático es la construcción del cliente real (`crearPasarelaMercadoPago` y `crearEnviadorMailGmail`), que necesita credenciales y servicios externos; la conexión real se verifica a mano de punta a punta (ver `IS_SRC_TP06_ComprarEntradas/README.md`). Toda decisión de negocio está en `compraService.ts`, que está cubierto al 100%.
