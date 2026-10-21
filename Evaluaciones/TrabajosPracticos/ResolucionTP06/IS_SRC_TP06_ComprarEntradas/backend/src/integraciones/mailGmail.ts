@@ -1,24 +1,33 @@
-import nodemailer from 'nodemailer';
+import nodemailer, { Transporter } from 'nodemailer';
 import { EnviadorMail } from '../models/compra';
 
+// Parte del transporter de nodemailer que usa el enviador. En los tests se reemplaza por un doble.
+export type TransporteMail = Pick<Transporter, 'sendMail'>;
+
+// Google muestra la contraseña de aplicación en grupos de 4 separados por espacios: se aceptan tal cual se copian
+export const normalizarCredencialesGmail = (usuario: string, contrasenaAplicacion: string) => ({
+  usuario: usuario.trim(),
+  contrasena: contrasenaAplicacion.replace(/\s+/g, ''),
+});
+
+export const crearEnviadorMailConTransporte = (transporte: TransporteMail, remitente: string): EnviadorMail => ({
+  enviar: async (mail) => {
+    await transporte.sendMail({
+      from: `"EcoHarmony Park" <${remitente}>`,
+      to: mail.destinatario,
+      subject: mail.asunto,
+      html: mail.cuerpo,
+    });
+  },
+});
+
 export const crearEnviadorMailGmail = (usuario: string, contrasenaAplicacion: string): EnviadorMail => {
-  const usuarioNormalizado = usuario.trim();
-  const contrasenaNormalizada = contrasenaAplicacion.replace(/\s+/g, '');
+  const credenciales = normalizarCredencialesGmail(usuario, contrasenaAplicacion);
   const transporte = nodemailer.createTransport({
     service: 'gmail',
-    auth: { user: usuarioNormalizado, pass: contrasenaNormalizada },
+    auth: { user: credenciales.usuario, pass: credenciales.contrasena },
   });
-
-  return {
-    enviar: async (mail) => {
-      await transporte.sendMail({
-        from: `"EcoHarmony Park" <${usuarioNormalizado}>`,
-        to: mail.destinatario,
-        subject: mail.asunto,
-        html: mail.cuerpo,
-      });
-    },
-  };
+  return crearEnviadorMailConTransporte(transporte, credenciales.usuario);
 };
 
 // Alternativa para desarrollo cuando todavía no se configuró Gmail en el .env
