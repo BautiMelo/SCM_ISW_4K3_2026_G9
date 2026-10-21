@@ -26,6 +26,13 @@ const parsearFecha = (fecha: string): Date => {
   return new Date(anio, mes - 1, dia);
 };
 
+// La fecha llega del body de la API, así que puede no ser texto. Si Date "corrige" el día
+// (ej. 31/02 -> 03/03), la fecha no existe.
+const esFechaExistente = (fechaTexto: unknown): fechaTexto is string =>
+  typeof fechaTexto === 'string'
+  && /^\d{4}-\d{2}-\d{2}$/.test(fechaTexto)
+  && parsearFecha(fechaTexto).getDate() === Number(fechaTexto.split('-')[2]);
+
 const formatearFecha = (fecha: Date): string => fecha.toLocaleDateString('es-AR', {
   day: '2-digit',
   month: '2-digit',
@@ -91,13 +98,10 @@ const validarAnticipacionMaxima = (fechaVisita: Date, fechaActual: Date): void =
 
 // Valida que la fecha exista y esté dentro de la ventana de venta: desde hoy (hasta las 17:30) hasta dentro de un mes
 export const validarFechaVisita = (fechaTexto: string, fechaActual: Date): Date => {
-  const fechaVisita = parsearFecha(fechaTexto);
-  // Si Date "corrigió" la fecha (ej. 31/02 -> 03/03), la fecha no existe
-  const esFechaExistente = /^\d{4}-\d{2}-\d{2}$/.test(fechaTexto)
-    && fechaVisita.getDate() === Number(fechaTexto.split('-')[2]);
-  if (!esFechaExistente) {
+  if (!esFechaExistente(fechaTexto)) {
     throw new CompraError('Debe indicar una fecha de visita válida (AAAA-MM-DD)');
   }
+  const fechaVisita = parsearFecha(fechaTexto);
 
   if (fechaVisita < inicioDelDia(fechaActual)) {
     throw new CompraError('La fecha de visita debe ser hoy o una fecha futura');
@@ -135,7 +139,9 @@ export const validarCantidadEntradas = (cantidadEntradas: number): void => {
 };
 
 export const validarVisitantes = (visitantes: Visitante[], cantidadEntradas: number): void => {
-  if (!Array.isArray(visitantes) || visitantes.length !== cantidadEntradas) {
+  const sonVisitantesCompletos = Array.isArray(visitantes)
+    && visitantes.every((visitante) => typeof visitante === 'object' && visitante !== null);
+  if (!sonVisitantesCompletos || visitantes.length !== cantidadEntradas) {
     throw new CompraError(`Debe indicar la edad y el tipo de pase de cada uno de los ${cantidadEntradas} visitantes`);
   }
 
@@ -150,7 +156,7 @@ export const validarVisitantes = (visitantes: Visitante[], cantidadEntradas: num
 };
 
 // Las compras pendientes de pago no cuentan: si el usuario abandona Mercado Pago no queda bloqueado
-const ESTADOS_QUE_SUMAN_AL_TOPE: EstadoCompra[] = ['RESERVADA', 'PAGADA'];
+const ESTADOS_QUE_SUMAN_AL_TOPE: EstadoCompra[] = ['RESERVADA', 'PAGADA', 'SIN_COSTO'];
 
 export const validarTopeEntradasPorFecha = async (
   usuario: Usuario,
@@ -198,18 +204,45 @@ const armarResultado = (compra: Compra): ResultadoCompra => ({
   codigoReserva: compra.codigoReserva,
 });
 
-// RESERVADA (efectivo): se paga en boletería. PAGADA (tarjeta): ya se cobró por Mercado Pago.
+const describirPago = (compra: Compra): string => {
+  if (compra.estado === 'SIN_COSTO') {
+    return 'Esta compra no tiene costo';
+  }
+  const etiqueta = compra.estado === 'RESERVADA' ? 'Total a pagar en boletería' : 'Total pagado con Mercado Pago';
+  return `${etiqueta}: <strong>$${compra.montoTotal}</strong>`;
+};
+
+// RESERVADA (efectivo): se paga en boletería. PAGADA (tarjeta): ya se cobró por Mercado Pago. SIN_COSTO: no se paga.
 const armarMailConfirmacion = (compra: Compra): Mail => {
-  const esReserva = compra.estado === 'RESERVADA';
+  const esReserva = compra.estado !== 'PAGADA';
   return {
     destinatario: compra.usuario.email,
     asunto: `EcoHarmony Park - Confirmación de tu ${esReserva ? 'reserva' : 'compra'}`,
     cuerpo: `
       <h2>¡Gracias por tu ${esReserva ? 'reserva' : 'compra'}, ${compra.usuario.nombre}!</h2>
       <p>${esReserva ? 'Reservaste' : 'Compraste'} <strong>${describirEntradas(compra)}</strong>.</p>
-      <p>${esReserva ? 'Total a pagar en boletería' : 'Total pagado con Mercado Pago'}: <strong>$${compra.montoTotal}</strong></p>
+      <p>${describirPago(compra)}</p>
       <p>Código de reserva: <strong>${compra.codigoReserva}</strong> (presentalo en el ingreso al parque)</p>`,
   };
+};
+
+// La compra ya está registrada cuando se envía el mail: si el envío falla no se revierte,
+// se informa en el resultado (el visitante igual tiene su código de reserva en pantalla)
+const enviarConfirmacion = async (compra: Compra, dependencias: DependenciasCompra): Promise<boolean> => {
+  try {
+    await dependencias.enviadorMail.enviar(armarMailConfirmacion(compra));
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+// Con monto $0 no hay nada que cobrar: no se va a Mercado Pago aunque haya elegido tarjeta
+export const determinarEstadoInicial = (formaPago: string, montoTotal: number): EstadoCompra => {
+  if (montoTotal === 0) {
+    return 'SIN_COSTO';
+  }
+  return formaPago === 'TARJETA' ? 'PENDIENTE_PAGO' : 'RESERVADA';
 };
 
 export const comprarEntradas = async (
@@ -230,7 +263,8 @@ export const comprarEntradas = async (
   );
 
   // A partir de acá la solicitud ya cumple todos los criterios de aceptación
-  const pagaConTarjeta = solicitud.formaPago === 'TARJETA';
+  const montoTotal = calcularMontoTotal(solicitud.visitantes);
+  const estado = determinarEstadoInicial(solicitud.formaPago as string, montoTotal);
   const compra: Compra = {
     codigoReserva: randomUUID().replace(/-/g, '').slice(0, 8).toUpperCase(),
     usuario: solicitud.usuario as Usuario,
@@ -238,23 +272,24 @@ export const comprarEntradas = async (
     cantidadEntradas: solicitud.cantidadEntradas,
     visitantes: solicitud.visitantes,
     formaPago: solicitud.formaPago as string,
-    montoTotal: calcularMontoTotal(solicitud.visitantes),
-    estado: pagaConTarjeta ? 'PENDIENTE_PAGO' : 'RESERVADA',
+    montoTotal,
+    estado,
   };
-  await dependencias.repositorioCompras.guardar(compra);
-
-  if (pagaConTarjeta) {
+  if (estado === 'PENDIENTE_PAGO') {
+    // Primero Mercado Pago y después se guarda: si Mercado Pago falla no queda una compra huérfana.
     // El mail se envía recién cuando Mercado Pago aprueba el pago (ver confirmarPago)
     const urlPago = await dependencias.pasarelaPago.crearPago({
       codigoReserva: compra.codigoReserva,
       montoTotal: compra.montoTotal,
       descripcion: `${compra.cantidadEntradas} entradas EcoHarmony Park para el ${formatearFecha(fechaVisita)}`,
     });
+    await dependencias.repositorioCompras.guardar(compra);
     return { ...armarResultado(compra), urlPago };
   }
 
-  await dependencias.enviadorMail.enviar(armarMailConfirmacion(compra));
-  return armarResultado(compra);
+  await dependencias.repositorioCompras.guardar(compra);
+  const mailEnviado = await enviarConfirmacion(compra, dependencias);
+  return { ...armarResultado(compra), mailEnviado };
 };
 
 export const confirmarPago = async (
@@ -291,8 +326,8 @@ const aplicarPagoAprobado = async (
 ): Promise<ResultadoCompra> => {
   const compraPagada: Compra = { ...compra, estado: 'PAGADA' };
   await dependencias.repositorioCompras.guardar(compraPagada);
-  await dependencias.enviadorMail.enviar(armarMailConfirmacion(compraPagada));
-  return armarResultado(compraPagada);
+  const mailEnviado = await enviarConfirmacion(compraPagada, dependencias);
+  return { ...armarResultado(compraPagada), mailEnviado };
 };
 
 export interface EstadoConsulta {

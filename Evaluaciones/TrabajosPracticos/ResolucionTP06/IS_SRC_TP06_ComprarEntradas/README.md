@@ -20,8 +20,18 @@ cd backend
 npm install
 cp .env.example .env      # y completar los valores (ver abajo)
 npm test                  # corre los tests (Jest)
+npm run test:coverage     # tests + cobertura
 npm run dev               # levanta la API en http://localhost:4000
 ```
+
+Los tests no llaman a Mercado Pago ni mandan mails (usan dobles), así que corren sin `.env` completo. Son 113, en `backend/tests/`:
+
+| Archivo | Tests | Qué prueba |
+|---|---|---|
+| `compraService.test.ts` | 89 | Reglas de negocio de la compra, confirmación del pago y polling |
+| `compraApi.test.ts` | 9 | API HTTP (login, 401, 201, 400) con Supertest |
+| `mercadoPago.test.ts` | 11 | Adaptador de Mercado Pago con clientes del SDK dobles |
+| `mailGmail.test.ts` | 4 | Adaptador de mail con un transporter de nodemailer doble |
 
 ### Variables del `.env` (secretos)
 
@@ -35,7 +45,9 @@ El `.env` **no se sube al repo** (está en `.gitignore`). Cada integrante crea e
 | `USUARIO_DEMO_EMAIL` | No | Casilla real donde recibir el mail del usuario demo |
 | `PORT`, `FRONTEND_URL` | No | Por defecto `4000` y `http://localhost:5173` |
 
-Sin `MP_ACCESS_TOKEN` ni Gmail la app igual funciona: la compra en **efectivo** anda de punta a punta (con el mail por consola). Con tarjeta, la API responde 500 y el log del backend dice qué falta.
+Sin `MP_ACCESS_TOKEN` ni Gmail la app igual funciona: la compra en **efectivo** anda de punta a punta (con el mail por consola), y también una compra **sin costo** (todos los visitantes de hasta 3 años), que no pasa por Mercado Pago aunque se elija tarjeta. Con tarjeta y monto mayor a $0, la API responde 500, no guarda la compra y el log del backend dice qué falta.
+
+Si Gmail está configurado pero el envío falla (por ejemplo, contraseña de aplicación incorrecta), la compra igual queda registrada: la API responde 201 con `mailEnviado: false` y la pantalla de resultado le pide al visitante que guarde su código de reserva.
 
 ### Credenciales de prueba de Mercado Pago
 
@@ -44,7 +56,7 @@ Sin `MP_ACCESS_TOKEN` ni Gmail la app igual funciona: la compra en **efectivo** 
 3. Iniciar sesión con el **vendedor de prueba**, entrar a la aplicación → **Credenciales de producción** de esa cuenta de prueba: copiar el **Access Token** (`APP_USR-...`) en `MP_ACCESS_TOKEN`.
 4. Para pagar, en el checkout iniciar sesión con el **comprador de prueba** y usar una [tarjeta de prueba](https://www.mercadopago.com.ar/developers/es/docs/checkout-pro/additional-content/your-integrations/test/cards). Con el nombre de titular `APRO` el pago sale aprobado; con `OTHE`, rechazado.
 
-En `localhost` Mercado Pago no vuelve solo a la app: al terminar el pago hay que tocar **"Volver al sitio"**. Ahí se abre `/resultado`, el backend confirma el pago con Mercado Pago y se envía el mail.
+El checkout se abre en una ventana emergente y la app consulta el estado del pago cada 2 segundos: cuando Mercado Pago lo aprueba, la compra queda pagada y se envía el mail, aunque el navegador no vuelva a la app. En `localhost` Mercado Pago no vuelve solo; si se toca **"Volver al sitio"**, se abre `/resultado` y el backend confirma el pago por el mismo camino.
 
 ## 2. Frontend
 
@@ -88,7 +100,10 @@ Si el celular no puede conectarse, comprobá que ambos dispositivos estén en la
 |---|---|---|---|
 | POST | `/auth/login` | — | `{ email, password }` → `{ token, usuario }` |
 | GET | `/compras/fechas-disponibles` | — | Fechas que se pueden elegir en el calendario (`AAAA-MM-DD`) |
-| POST | `/compras` | Bearer | `{ fechaVisita: "AAAA-MM-DD", cantidadEntradas, visitantes: [{ edad, tipoPase: "VIP"\|"REGULAR" }], formaPago: "EFECTIVO"\|"TARJETA" }` → `201` con mensaje, cantidad, fecha, monto, código de reserva y `urlPago` (si es tarjeta) |
+| POST | `/compras` | Bearer | `{ fechaVisita: "AAAA-MM-DD", cantidadEntradas, visitantes: [{ edad, tipoPase: "VIP"\|"REGULAR" }], formaPago: "EFECTIVO"\|"TARJETA" }` → `201` con mensaje, cantidad, fecha, monto, código de reserva, `urlPago` (con tarjeta y monto mayor a $0) y `mailEnviado` (cuando se envió el mail en esa operación) |
 | POST | `/compras/:codigoReserva/confirmar-pago` | Bearer | `{ idPago }` → confirma el pago con Mercado Pago y envía el mail |
+| GET | `/compras/:codigoReserva/estado` | Bearer | Polling mientras se paga: `{ estado, pagoMercadoPago?, resultado? }` |
 
-Errores: `400 { mensaje }` si no se cumple un criterio de aceptación, `401` sin sesión, `500` ante fallas inesperadas.
+Estados de una compra: `RESERVADA` (efectivo), `PENDIENTE_PAGO` (esperando a Mercado Pago), `PAGADA` (tarjeta aprobada) y `SIN_COSTO` (monto $0).
+
+Errores: `400 { mensaje }` si no se cumple un criterio de aceptación o un dato tiene un tipo inválido, `401` sin sesión, `500` ante fallas de Mercado Pago o inesperadas. Una falla del mail no es un error: la compra responde `201` con `mailEnviado: false`.

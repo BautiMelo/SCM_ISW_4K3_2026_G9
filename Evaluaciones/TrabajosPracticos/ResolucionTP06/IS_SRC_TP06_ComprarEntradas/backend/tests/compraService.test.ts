@@ -2,7 +2,7 @@ import {
   calcularMontoTotal, comprarEntradas, confirmarPago, consultarEstadoPago, obtenerFechasDisponibles, validarDiaApertura, validarFechaVisita,
 } from '../src/services/compraService';
 import { crearRepositorioComprasEnMemoria } from '../src/data/repositorioCompras';
-import { EstadoCompra, SolicitudCompra } from '../src/models/compra';
+import { EstadoCompra, SolicitudCompra, Visitante } from '../src/models/compra';
 
 // Fecha y hora actual fijas para que los tests no dependan de cuándo se corren: martes 13/10/2026 10:00
 const FECHA_ACTUAL = new Date(2026, 9, 13, 10, 0);
@@ -93,6 +93,18 @@ describe('comprarEntradas', () => {
 
     test('comprar con una fecha de visita con formato inválido falla', async () => {
       const solicitud = crearSolicitudValida({ fechaVisita: '14/10/2026' });
+
+      await expect(comprarEntradas(solicitud, crearDependencias()))
+        .rejects.toThrow('Debe indicar una fecha de visita válida (AAAA-MM-DD)');
+    });
+
+    // Tipo de dato: el frontend no lo permite, pero la API puede recibir cualquier JSON
+    test.each([
+      ['sin enviar', undefined],
+      ['como número', 20261014],
+      ['como objeto', { anio: 2026, mes: 10, dia: 14 }],
+    ])('comprar con la fecha de visita %s (no es texto) falla', async (_caso, fechaVisita) => {
+      const solicitud = crearSolicitudValida({ fechaVisita: fechaVisita as unknown as string });
 
       await expect(comprarEntradas(solicitud, crearDependencias()))
         .rejects.toThrow('Debe indicar una fecha de visita válida (AAAA-MM-DD)');
@@ -319,6 +331,25 @@ describe('comprarEntradas', () => {
         .rejects.toThrow('Debe indicar la edad y el tipo de pase de cada uno de los 3 visitantes');
     });
 
+    test.each([
+      ['vacío (null)', null],
+      ['como texto', '30 REGULAR'],
+    ])('comprar con un visitante %s falla', async (_caso, visitanteInvalido) => {
+      const solicitud = crearSolicitudValida({
+        visitantes: [{ edad: 30, tipoPase: 'REGULAR' }, visitanteInvalido as unknown as Visitante],
+      });
+
+      await expect(comprarEntradas(solicitud, crearDependencias()))
+        .rejects.toThrow('Debe indicar la edad y el tipo de pase de cada uno de los 2 visitantes');
+    });
+
+    test('comprar con los visitantes como texto en lugar de una lista falla', async () => {
+      const solicitud = crearSolicitudValida({ visitantes: '30,8' as unknown as Visitante[] });
+
+      await expect(comprarEntradas(solicitud, crearDependencias()))
+        .rejects.toThrow('Debe indicar la edad y el tipo de pase de cada uno de los 2 visitantes');
+    });
+
     test('comprar sin indicar la edad de un visitante falla', async () => {
       const solicitud = crearSolicitudValida({
         visitantes: [{ edad: 30, tipoPase: 'REGULAR' }, { tipoPase: 'VIP' }],
@@ -387,6 +418,17 @@ describe('comprarEntradas', () => {
       expect(dependencias.enviadorMail.enviar).not.toHaveBeenCalled();
     });
 
+    test('si Mercado Pago falla, la compra no queda registrada ni se envía mail', async () => {
+      const dependencias = crearDependencias();
+      dependencias.pasarelaPago.crearPago.mockRejectedValue(new Error('Mercado Pago no responde'));
+
+      await expect(comprarEntradas(crearSolicitudValida({ formaPago: 'TARJETA' }), dependencias))
+        .rejects.toThrow('Mercado Pago no responde');
+
+      expect(await dependencias.repositorioCompras.buscarPorUsuarioYFecha(1, '2026-10-14')).toEqual([]);
+      expect(dependencias.enviadorMail.enviar).not.toHaveBeenCalled();
+    });
+
     test('la compra en efectivo no crea un pago en Mercado Pago', async () => {
       const dependencias = crearDependencias();
 
@@ -394,6 +436,56 @@ describe('comprarEntradas', () => {
 
       expect(dependencias.pasarelaPago.crearPago).not.toHaveBeenCalled();
       expect(resultado.urlPago).toBeUndefined();
+    });
+  });
+
+  describe('compra sin costo (todos los visitantes de hasta 3 años)', () => {
+    const solicitarSinCosto = (formaPago: string) => crearSolicitudValida({
+      formaPago,
+      visitantes: [{ edad: 2, tipoPase: 'REGULAR' }, { edad: 3, tipoPase: 'VIP' }],
+    });
+
+    test('con tarjeta no crea un pago en Mercado Pago (no se cobra $0)', async () => {
+      const dependencias = crearDependencias();
+
+      const resultado = await comprarEntradas(solicitarSinCosto('TARJETA'), dependencias);
+
+      expect(resultado.montoTotal).toBe(0);
+      expect(resultado.urlPago).toBeUndefined();
+      expect(dependencias.pasarelaPago.crearPago).not.toHaveBeenCalled();
+    });
+
+    test.each(['TARJETA', 'EFECTIVO'])('pagando con %s queda registrada como SIN_COSTO', async (formaPago) => {
+      const dependencias = crearDependencias();
+
+      const resultado = await comprarEntradas(solicitarSinCosto(formaPago), dependencias);
+
+      const compra = await dependencias.repositorioCompras.buscarPorCodigo(resultado.codigoReserva);
+      expect(compra?.estado).toBe('SIN_COSTO');
+    });
+
+    test('con tarjeta envía el mail de confirmación al instante, indicando que no tiene costo', async () => {
+      const dependencias = crearDependencias();
+
+      await comprarEntradas(solicitarSinCosto('TARJETA'), dependencias);
+
+      expect(dependencias.enviadorMail.enviar).toHaveBeenCalledTimes(1);
+      const mail = dependencias.enviadorMail.enviar.mock.calls[0][0];
+      expect(mail.asunto).toBe('EcoHarmony Park - Confirmación de tu reserva');
+      expect(mail.cuerpo).toContain('Esta compra no tiene costo');
+    });
+
+    test('suma al máximo de 10 entradas por fecha (los menores de 3 años también son entradas)', async () => {
+      const dependencias = crearDependencias();
+      await comprarEntradas(solicitarSinCosto('TARJETA'), dependencias);
+
+      const nueveEntradas = crearSolicitudValida({
+        cantidadEntradas: 9,
+        visitantes: Array.from({ length: 9 }, () => ({ edad: 25, tipoPase: 'REGULAR' })),
+      });
+
+      await expect(comprarEntradas(nueveEntradas, dependencias))
+        .rejects.toThrow('Ya tenés 2 para el 14/10/2026: podés comprar hasta 8 más');
     });
   });
 
@@ -435,6 +527,23 @@ describe('comprarEntradas', () => {
       expect(mail.cuerpo).toContain('2 entradas para el 14/10/2026');
       expect(mail.cuerpo).toContain('$20000');
       expect(mail.cuerpo).toContain(resultado.codigoReserva);
+    });
+
+    test('cuando el mail se envía, el resultado lo informa', async () => {
+      const resultado = await comprarEntradas(crearSolicitudValida(), crearDependencias());
+
+      expect(resultado.mailEnviado).toBe(true);
+    });
+
+    test('si falla el envío del mail, la compra igual queda RESERVADA e informa que el mail no se envió', async () => {
+      const dependencias = crearDependencias();
+      dependencias.enviadorMail.enviar.mockRejectedValue(new Error('Gmail no responde'));
+
+      const resultado = await comprarEntradas(crearSolicitudValida(), dependencias);
+
+      expect(resultado.mailEnviado).toBe(false);
+      const compra = await dependencias.repositorioCompras.buscarPorCodigo(resultado.codigoReserva);
+      expect(compra?.estado).toBe('RESERVADA');
     });
 
     test('la compra genera un código de reserva', async () => {
@@ -481,6 +590,16 @@ describe('confirmarPago (vuelta de Mercado Pago)', () => {
     expect(mail.destinatario).toBe('ana@mail.com');
     expect(mail.asunto).toBe('EcoHarmony Park - Confirmación de tu compra');
     expect(mail.cuerpo).toContain(codigoReserva);
+  });
+
+  test('si falla el envío del mail, la compra igual queda PAGADA e informa que el mail no se envió', async () => {
+    const { dependencias, codigoReserva } = await prepararCompraConTarjeta('approved');
+    dependencias.enviadorMail.enviar.mockRejectedValue(new Error('Gmail no responde'));
+
+    const resultado = await confirmarPago(codigoReserva, ID_PAGO, dependencias);
+
+    expect(resultado.mailEnviado).toBe(false);
+    expect((await dependencias.repositorioCompras.buscarPorCodigo(codigoReserva))?.estado).toBe('PAGADA');
   });
 
   test('con el pago rechazado falla y no envía mail', async () => {
