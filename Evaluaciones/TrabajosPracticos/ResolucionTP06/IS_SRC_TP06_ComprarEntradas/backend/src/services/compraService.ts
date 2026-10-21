@@ -226,6 +226,17 @@ const armarMailConfirmacion = (compra: Compra): Mail => {
   };
 };
 
+// La compra ya está registrada cuando se envía el mail: si el envío falla no se revierte,
+// se informa en el resultado (el visitante igual tiene su código de reserva en pantalla)
+const enviarConfirmacion = async (compra: Compra, dependencias: DependenciasCompra): Promise<boolean> => {
+  try {
+    await dependencias.enviadorMail.enviar(armarMailConfirmacion(compra));
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 // Con monto $0 no hay nada que cobrar: no se va a Mercado Pago aunque haya elegido tarjeta
 export const determinarEstadoInicial = (formaPago: string, montoTotal: number): EstadoCompra => {
   if (montoTotal === 0) {
@@ -277,12 +288,7 @@ export const comprarEntradas = async (
   }
 
   await dependencias.repositorioCompras.guardar(compra);
-  let mailEnviado = true;
-  try {
-    await dependencias.enviadorMail.enviar(armarMailConfirmacion(compra));
-  } catch {
-    mailEnviado = false;
-  }
+  const mailEnviado = await enviarConfirmacion(compra, dependencias);
   return { ...armarResultado(compra), mailEnviado };
 };
 
@@ -320,12 +326,7 @@ const aplicarPagoAprobado = async (
 ): Promise<ResultadoCompra> => {
   const compraPagada: Compra = { ...compra, estado: 'PAGADA' };
   await dependencias.repositorioCompras.guardar(compraPagada);
-  let mailEnviado = true;
-  try {
-    await dependencias.enviadorMail.enviar(armarMailConfirmacion(compraPagada));
-  } catch {
-    mailEnviado = false;
-  }
+  const mailEnviado = await enviarConfirmacion(compraPagada, dependencias);
   return { ...armarResultado(compraPagada), mailEnviado };
 };
 
