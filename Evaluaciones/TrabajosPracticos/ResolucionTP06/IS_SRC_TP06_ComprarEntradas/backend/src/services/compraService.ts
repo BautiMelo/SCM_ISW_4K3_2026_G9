@@ -277,8 +277,13 @@ export const comprarEntradas = async (
   }
 
   await dependencias.repositorioCompras.guardar(compra);
-  await dependencias.enviadorMail.enviar(armarMailConfirmacion(compra));
-  return armarResultado(compra);
+  let mailEnviado = true;
+  try {
+    await dependencias.enviadorMail.enviar(armarMailConfirmacion(compra));
+  } catch {
+    mailEnviado = false;
+  }
+  return { ...armarResultado(compra), mailEnviado };
 };
 
 export const confirmarPago = async (
@@ -315,8 +320,13 @@ const aplicarPagoAprobado = async (
 ): Promise<ResultadoCompra> => {
   const compraPagada: Compra = { ...compra, estado: 'PAGADA' };
   await dependencias.repositorioCompras.guardar(compraPagada);
-  await dependencias.enviadorMail.enviar(armarMailConfirmacion(compraPagada));
-  return armarResultado(compraPagada);
+  let mailEnviado = true;
+  try {
+    await dependencias.enviadorMail.enviar(armarMailConfirmacion(compraPagada));
+  } catch {
+    mailEnviado = false;
+  }
+  return { ...armarResultado(compraPagada), mailEnviado };
 };
 
 export interface EstadoConsulta {
