@@ -1,0 +1,17 @@
+Practico 14 de octubre
+
+Testing: Act de control de calidad
+-> encontrar defectos 
+
+Estrategias:
+1. Caja Negra: en tiempo de ejecución 
+2. Caja Blanca: Estatico
+
+Armar plan de pruebas: defino como hacer las pruebas, defino cuando hacer las pruebas.
+
+1. Defino los casos de prueba que voy a probar.
+	¿Cuántos? -> Los que sean necesarios, intentar abarcar la mayor cobertura de pruebas con el menos costo. 
+
+Caso de prueba: Artefacto de testing, los pasos a seguir de testing
+
+Tecnicas: Clase de equivalencia: Tecnica de partición de equivalencia - separar limite 
