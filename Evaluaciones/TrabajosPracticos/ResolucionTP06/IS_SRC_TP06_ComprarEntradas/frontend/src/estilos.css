@@ -31,7 +31,9 @@ body {
   gap: 8px;
 }
 
-.encabezado h1 { color: var(--primario); margin: 8px 0; }
+.encabezado h1 { color: var(--primario); margin: 8px 0; line-height: 0; }
+/* Logo con fondo transparente: el nombre del parque ya está dentro de la imagen */
+.logo { display: block; height: 56px; width: auto; }
 .usuario { display: flex; gap: 12px; align-items: center; }
 
 .tarjeta {
@@ -192,6 +194,6 @@ input[aria-invalid='true'] {
 @media (max-width: 480px) {
   .pagina { padding: 12px; }
   .tarjeta { padding: 16px; }
-  .encabezado h1 { font-size: 1.4rem; }
+  .logo { height: 40px; }
   .visitante label { flex-basis: 100%; }
 }

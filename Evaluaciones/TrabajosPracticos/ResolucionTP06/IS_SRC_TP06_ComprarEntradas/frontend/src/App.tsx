@@ -32,7 +32,9 @@ export const App = () => {
   return (
     <div className="pagina">
       <header className="encabezado">
-        <h1>🌳 EcoHarmony Park</h1>
+        <h1>
+          <img className="logo" src="/logo.png" alt="EcoHarmony Park" />
+        </h1>
         {sesion && (
           <div className="usuario">
             <span>{sesion.usuario.nombre}</span>
