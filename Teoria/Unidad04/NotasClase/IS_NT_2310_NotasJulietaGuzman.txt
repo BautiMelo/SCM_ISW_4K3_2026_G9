@@ -1,0 +1,89 @@
+23 de Octubre de 2026
+
+Métricas en diferentes enfoques
+
+Saber como vamos
+Saber que tan desviados estamos de la planificación  
+Las métricas no son extrapolables de un proyecto a otro 
+Hay que ver si la info de la metric anos sirve 
+Hay que ver que el esfuerzo de buscar la metrica nos sirva . NO HAY QUE TRABAJAR PARA LA METRICA.
+No comparan 
+
+
+3 enfoques: 
+Tradicional: 
+	Procesos definidos. 
+	Gestión tradicional de proyecto: dentro de esta hay monitoreo y control.
+	¿Cómo nos damos cuenta las modificaciones que debemos hacer en el plan? 
+	-> monitoreo y control (evalúa el proyecto en función de lo planificado)
+	 ¿Cómo sabemos si vamos bien? METRICAS, determinamos la realidad de nuestro proyecto, plan, proceso 
+	METRICAS BASICAS: 
+		- tamaño del producto (producto): difícil con la evolución de sw. Hs lineales / hs hombres.
+		- Esfuerzo (proyecto y proceso) 
+		- Tiempo (proyecto y proceso): depende de que tan largo vaya a ser mi proyecto (días / meses) 
+		- Defectos (producto): contextualizar: en el primer reléase, etc	
+		- Costos 
+
+	No son extrapolables.
+	Las métricas no se negocia la calidad 
+
+	Recurso 
+	Tiempo 
+	Alcance
+	
+
+Empíricos:
+	
+	ciertas bases que se establecen - satisfacer necesidades del cliente , entregar sw funcionando al cliente. 
+	solo vamos a medir lo que sea necesario - sw funiconando que satisface al cliente
+	
+
+	
+	scrum: 
+		velocidad: cantidad de Story Points completadas por iteración. sumo la cantidad de story points que mi PO me entrega funcionando. se mide por sprint. 
+		capacidad: cantidad de story point que tengo como limite de US que puedo tomar en un sprint. al principio podemos calcularlo con las hs reales de trabajo. después comparamos con otros proyectos. la definimos en la planning. 
+Las hs son esfuerzo, los puntos de historia son esfuerzo, incertidumbre y complejidad. 
+		RTF: Las funcionalidades que están aprobadas y están desplegadas en producción. problema: mide cantidad de features y no en story points.
+
+
+	Kanban: sirve para mejorar procesos - brindar un servicio. 
+		Lead Time: muestra la vista del cliente. desde que una pieza del trabajo entra al backlog hasta que se entrega. ej del pedido desde que lo pido hasta que llega. ritmo de entrega 
+		Cycle Time: muestra la vista interna. Tiempo del proceso desde que empiezo a ejecutar la tarea. Ej. del pedido desde que el cocinero empieza a cocinar. Mide el ritmo de terminación.
+		Touch Time: tiempo efectivo en el que estuvimos trabajando en una pieza de trabajo.
+
+		Touch < cycle < lead
+		
+	% eficiencia del ciclo del proceso: touch / cycle o Lead -> mas cercano a 1 es mejor 
+		
+En ágil son métricas orientadas a servicio. 
+
+
+
+3 métricas: 
+-> Proceso: en la instancia de cada proyecto es como lo ejecuto. Si yo quiero saber que tan bien definimos la planificación, voy a ver de mis ultimo proyecto cual es el desvío de lo que planifique con lo que hice. Despersonalizan lo que paso en cada proyecto. 
+
+-> Proyecto: miden lo que ocurre dentro de un proyecto en particular.
+
+-> Producto: se encuentran en el ámbito a lo que ocurre con el producto de sw. defectos
+
+Las metricas nos tienen que ayudar a que la gestión sea mejor 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
