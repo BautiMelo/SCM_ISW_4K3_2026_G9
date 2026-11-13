@@ -155,4 +155,6 @@ Una Línea Base es una configuración de ICs formalmente aprobada, que sirve de 
 | **Tag** | **Descripción** |
 | --- | --- |
 | BL-TP04 | Línea base inicial: configuración del repositorio (TP04) |
+| BL-TP06 | Resolución del TP06: diseño e implementación de Comprar Entradas |
 | BL-TP07 | Resolución del TP07: dinámica Scrum para la elaboración de maquetas |
+| BL-TP12 | Resolución del TP12: Design Thinking |
