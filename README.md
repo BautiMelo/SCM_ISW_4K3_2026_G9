@@ -4,20 +4,20 @@ Repositorio dedicado a la gestión de configuración de la Materia Ingeniería y
 Este README es el **Plan de Gestión de Configuración de Software (SCM)** del grupo, y es en sí mismo un Ítem de Configuración (ver punto 5).
 
 ## 🔆1. Integrantes del equipo🔆
-| Integrante               | Legajo |
-|--------------------------|--------|
-| Michelazzo, Francisco    | 400974 |
-| Stutz, Santiago          | 401863 |
-| Becerra, Maximo          | 403564 |
-| Melo, Bautista           | 401860 |
-| Guzman, Julieta          | 89894  |
-| Savarino, Sofia          | 401547 |
-| Bottari, Juan            | 400146 |
-| Sellan, Franco Ernesto   | 89970  |
-| Toselli, Gabriel         | 403313 |
-| Naya, Leo                | 402326 |
-| Gomez, Luciano           | 89058  |
-| Bottari, Lucca           | 82359  |
+| Integrante               | Legajo |        |
+|--------------------------|--------|--------|
+| Michelazzo, Francisco    | 400974 |        |
+| Stutz, Santiago          | 401863 |        |
+| Becerra, Maximo          | 403564 |        |
+| Melo, Bautista           | 401860 |        |
+| Guzman, Julieta          | 89894  |        |
+| Savarino, Sofia          | 401547 |        |
+| Bottari, Juan            | 400146 | *Abandonó* |
+| Sellan, Franco Ernesto   | 89970  |        |
+| Toselli, Gabriel         | 403313 |        |
+| Naya, Leo                | 402326 |        |
+| Gomez, Luciano           | 89058  |        |
+| Bottari, Lucca           | 82359  | *Abandonó* |
 
 ## 🔆2. Estructura Jerárquica del Repositorio🔆
 La estructura define únicamente las carpetas del repositorio. Qué ICs van en cada carpeta y cómo se nombran se detalla en la Matriz de Ítems de Configuración (punto 5).
