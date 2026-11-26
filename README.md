@@ -67,7 +67,7 @@ IS_[CATEGORIA]_[DETALLE]_[DESCRIPCION].[EXT]
 
 | **Abreviación** | **Significado / Concepto** | **Descripción y Alcance** |
 | ---   | ---                        | --- |
-| IS    | Ingeniería de Software     | Prefijo institucional común para todos los artefactos de la asignatura |
+| IS    | Ingeniería y Calidad de Software | Prefijo institucional común para todos los artefactos de la asignatura |
 | PTA   | Pautas de Cursado          | Reglamentos, condiciones de regularidad y normativas de cátedra |
 | CRON  | Cronograma                 | Calendario oficial de clases, entregas y exámenes |
 | MB    | Bibliografía               | Libros, papers y material de referencia |
